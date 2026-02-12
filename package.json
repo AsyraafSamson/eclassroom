@@ -8,8 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "opennextjs-cloudflare && wrangler deploy",
-    "preview": "opennextjs-cloudflare && wrangler dev"
+    "deploy": "opennextjs-cloudflare build && wrangler deploy",
+    "preview": "opennextjs-cloudflare preview"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
