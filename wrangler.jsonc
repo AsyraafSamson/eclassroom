@@ -1,0 +1,12 @@
+{
+  "name": "eclassroom",
+  "compatibility_date": "2025-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "eclassroom",
+      "database_id": "522a7624-d5c2-4623-9450-d96099589414"
+    }
+  ]
+}
