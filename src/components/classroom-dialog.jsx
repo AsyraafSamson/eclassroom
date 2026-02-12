@@ -25,29 +25,46 @@ import { toast } from "sonner";
 export function ClassroomDialog({ open, onOpenChange, classroom, onSuccess }) {
   const isEdit = !!classroom;
   const [loading, setLoading] = useState(false);
+  const [roomGroups, setRoomGroups] = useState([]);
   const [form, setForm] = useState({
     name: "",
+    groupId: "",
     location: "",
     capacity: "",
     description: "",
+    notes: "",
+    canBeBooked: true,
     status: "available",
   });
+
+  useEffect(() => {
+    fetch("/api/room-groups")
+      .then((r) => r.json())
+      .then((data) => setRoomGroups(data.roomGroups || []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (classroom) {
       setForm({
         name: classroom.name || "",
+        groupId: classroom.group_id ? String(classroom.group_id) : "",
         location: classroom.location || "",
         capacity: classroom.capacity?.toString() || "",
         description: classroom.description || "",
+        notes: classroom.notes || "",
+        canBeBooked: classroom.can_be_booked !== 0,
         status: classroom.status || "available",
       });
     } else {
       setForm({
         name: "",
+        groupId: "",
         location: "",
         capacity: "",
         description: "",
+        notes: "",
+        canBeBooked: true,
         status: "available",
       });
     }
@@ -67,8 +84,14 @@ export function ClassroomDialog({ open, onOpenChange, classroom, onSuccess }) {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          name: form.name,
+          groupId: form.groupId ? parseInt(form.groupId, 10) : null,
+          location: form.location || null,
           capacity: form.capacity ? parseInt(form.capacity, 10) : null,
+          description: form.description || null,
+          notes: form.notes || null,
+          canBeBooked: form.canBeBooked,
+          status: form.status,
         }),
       });
 
@@ -89,7 +112,7 @@ export function ClassroomDialog({ open, onOpenChange, classroom, onSuccess }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? "Edit Classroom" : "Add Classroom"}
@@ -101,35 +124,60 @@ export function ClassroomDialog({ open, onOpenChange, classroom, onSuccess }) {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="e.g. Lab Komputer 1"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name *</Label>
+              <Input
+                id="name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Lab Komputer 1"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="roomGroup">Room Group</Label>
+              <Select
+                value={form.groupId}
+                onValueChange={(value) =>
+                  setForm({ ...form, groupId: value === "none" ? "" : value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select group..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {roomGroups.map((group) => (
+                    <SelectItem key={group.id} value={String(group.id)}>
+                      {group.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              value={form.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value })}
-              placeholder="e.g. Block A, Level 2"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="capacity">Capacity</Label>
-            <Input
-              id="capacity"
-              type="number"
-              min="0"
-              value={form.capacity}
-              onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-              placeholder="e.g. 40"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                placeholder="e.g. Block A, Level 2"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="capacity">Capacity</Label>
+              <Input
+                id="capacity"
+                type="number"
+                min="0"
+                value={form.capacity}
+                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                placeholder="e.g. 40"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
@@ -140,23 +188,52 @@ export function ClassroomDialog({ open, onOpenChange, classroom, onSuccess }) {
                 setForm({ ...form, description: e.target.value })
               }
               placeholder="Optional description..."
-              rows={3}
+              rows={2}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={form.status}
-              onValueChange={(value) => setForm({ ...form, status: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="available">Available</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              placeholder="Internal notes..."
+              rows={2}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={form.status}
+                onValueChange={(value) => setForm({ ...form, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bookable">Bookable</Label>
+              <Select
+                value={form.canBeBooked ? "yes" : "no"}
+                onValueChange={(value) =>
+                  setForm({ ...form, canBeBooked: value === "yes" })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Yes</SelectItem>
+                  <SelectItem value="no">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button

@@ -159,9 +159,11 @@ export default function ClassroomsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Group</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Capacity</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Bookable</TableHead>
                 {isAdmin && (
                   <TableHead className="w-[70px]">Actions</TableHead>
                 )}
@@ -172,6 +174,9 @@ export default function ClassroomsPage() {
                 <TableRow key={classroom.id}>
                   <TableCell className="font-medium">
                     {classroom.name}
+                  </TableCell>
+                  <TableCell className={!classroom.group_name ? "text-muted-foreground" : ""}>
+                    {classroom.group_name || "—"}
                   </TableCell>
                   <TableCell className={!classroom.location ? "text-muted-foreground" : ""}>
                     {classroom.location || "—"}
@@ -189,6 +194,11 @@ export default function ClassroomsPage() {
                       className="capitalize"
                     >
                       {classroom.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={classroom.can_be_booked ? "default" : "secondary"}>
+                      {classroom.can_be_booked ? "Yes" : "No"}
                     </Badge>
                   </TableCell>
                   {isAdmin && (

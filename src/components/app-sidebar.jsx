@@ -50,7 +50,7 @@ const userNav = [
   },
 ];
 
-export function AppSidebar({ user, ...props }) {
+export function AppSidebar({ user, siteTitle = "eClassroom", ...props }) {
   const navItems = user?.role === "admin" ? adminNav : userNav;
 
   return (
@@ -65,7 +65,7 @@ export function AppSidebar({ user, ...props }) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold font-[var(--font-display)]">
-                    eClassroom
+                    {siteTitle}
                   </span>
                   <span className="truncate text-[0.65rem] uppercase tracking-[0.2em] text-sidebar-foreground/60">
                     Management System

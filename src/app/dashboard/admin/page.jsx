@@ -168,7 +168,7 @@ export default function AdminSettingsPage() {
             <AdminCard
               key={item.title}
               item={item}
-              isLive={item.href === "/dashboard/classrooms"}
+              isLive
             />
           ))}
         </div>
@@ -184,7 +184,7 @@ export default function AdminSettingsPage() {
             <AdminCard
               key={item.title}
               item={item}
-              isLive={item.href === "/dashboard/calendar"}
+              isLive
             />
           ))}
         </div>
@@ -197,7 +197,7 @@ export default function AdminSettingsPage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {insightItems.map((item) => (
-            <AdminCard key={item.title} item={item} isLive={false} />
+            <AdminCard key={item.title} item={item} isLive />
           ))}
         </div>
       </section>

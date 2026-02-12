@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -31,13 +32,18 @@ export function BookingDialog({
   initialTimeSlotId,
   lockDate = false,
   lockTimeSlot = false,
+  multiSelect = false,
+  classrooms = [],
 }) {
   const [loading, setLoading] = useState(false);
   const [timeSlots, setTimeSlots] = useState([]);
+  const [selectedSlots, setSelectedSlots] = useState([]);
+  const [selectedClassroomId, setSelectedClassroomId] = useState("");
   const [form, setForm] = useState({
     bookingDate: "",
     timeSlotId: "",
     purpose: "",
+    teacherName: "",
   });
 
   useEffect(() => {
@@ -47,7 +53,13 @@ export function BookingDialog({
       bookingDate: initialDate || "",
       timeSlotId: initialTimeSlotId || "",
       purpose: "",
+      teacherName: "",
     });
+
+    if (multiSelect) {
+      setSelectedSlots(initialTimeSlotId ? [initialTimeSlotId] : []);
+      setSelectedClassroomId(classroom?.id ? String(classroom.id) : "");
+    }
 
     fetch("/api/time-slots")
       .then((res) => res.json())
@@ -55,35 +67,77 @@ export function BookingDialog({
       .catch(() => {
         toast.error("Failed to load time slots");
       });
-  }, [open, initialDate, initialTimeSlotId]);
+  }, [open, initialDate, initialTimeSlotId, multiSelect, classroom]);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (!classroom) return;
+    
+    const classroomId = multiSelect && selectedClassroomId 
+      ? selectedClassroomId 
+      : classroom?.id;
+      
+    if (!classroomId) {
+      toast.error("Please select a classroom");
+      return;
+    }
+
+    const slotsToBook = multiSelect ? selectedSlots : [form.timeSlotId];
+
+    if (slotsToBook.length === 0) {
+      toast.error("Please select at least one time slot");
+      return;
+    }
 
     setLoading(true);
 
     try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          classroomId: classroom.id,
-          bookingDate: form.bookingDate,
-          timeSlotId: form.timeSlotId,
-          purpose: form.purpose,
-        }),
-      });
+      if (multiSelect) {
+        // Create multiple bookings
+        const res = await fetch("/api/bookings/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            classroomId: parseInt(classroomId, 10),
+            bookingDate: form.bookingDate,
+            timeSlotIds: slotsToBook,
+            purpose: form.purpose,
+            teacherName: form.teacherName,
+          }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to create booking");
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to create bookings");
+        }
+
+        onSuccess?.(data.bookings);
+        onOpenChange(false);
+        toast.success(`${data.bookings.length} booking(s) requested successfully`);
+      } else {
+        // Single booking
+        const res = await fetch("/api/bookings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            classroomId: parseInt(classroomId, 10),
+            bookingDate: form.bookingDate,
+            timeSlotId: form.timeSlotId,
+            purpose: form.purpose,
+            teacherName: form.teacherName,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to create booking");
+        }
+
+        onSuccess?.(data.booking);
+        onOpenChange(false);
+        toast.success("Booking requested successfully");
       }
-
-      onSuccess?.(data.booking);
-      onOpenChange(false);
-      toast.success("Booking requested successfully");
     } catch (error) {
       toast.error(error?.message || "Failed to create booking");
     } finally {
@@ -97,12 +151,34 @@ export function BookingDialog({
         <DialogHeader>
           <DialogTitle>Book Classroom</DialogTitle>
           <DialogDescription>
-            {classroom?.name
+            {multiSelect
+              ? "Select classrooms and time slots to book multiple at once."
+              : classroom?.name
               ? `Request a booking for ${classroom.name}.`
               : "Request a booking."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {multiSelect && classrooms.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="classroom">Classroom *</Label>
+              <Select
+                value={selectedClassroomId}
+                onValueChange={setSelectedClassroomId}
+              >
+                <SelectTrigger id="classroom" className="w-full">
+                  <SelectValue placeholder="Select classroom" />
+                </SelectTrigger>
+                <SelectContent>
+                  {classrooms.map((room) => (
+                    <SelectItem key={room.id} value={String(room.id)}>
+                      {room.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="bookingDate">Date *</Label>
             <Input
@@ -117,30 +193,74 @@ export function BookingDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="timeSlot">Time Slot *</Label>
-            <Select
-              value={form.timeSlotId}
-              onValueChange={(value) =>
-                setForm((prev) => ({ ...prev, timeSlotId: value }))
-              }
-              disabled={lockTimeSlot}
-            >
-              <SelectTrigger id="timeSlot" className="w-full">
-                <SelectValue placeholder="Select time slot" />
-              </SelectTrigger>
-              <SelectContent>
-                {timeSlots.length === 0 && (
-                  <SelectItem value="no-slots" disabled>
-                    No slots available
-                  </SelectItem>
+            <Label htmlFor="timeSlot">Time Slot{multiSelect ? "s" : ""} *</Label>
+            {multiSelect ? (
+              <div className="max-h-60 space-y-2 overflow-y-auto rounded-md border p-3">
+                {timeSlots.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No slots available</p>
+                ) : (
+                  timeSlots.map((slot) => (
+                    <div key={slot.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`slot-${slot.id}`}
+                        checked={selectedSlots.includes(String(slot.id))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedSlots((prev) => [...prev, String(slot.id)]);
+                          } else {
+                            setSelectedSlots((prev) =>
+                              prev.filter((id) => id !== String(slot.id))
+                            );
+                          }
+                        }}
+                        disabled={lockTimeSlot}
+                      />
+                      <label
+                        htmlFor={`slot-${slot.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {slot.label} ({slot.start_time} - {slot.end_time})
+                      </label>
+                    </div>
+                  ))
                 )}
-                {timeSlots.map((slot) => (
-                  <SelectItem key={slot.id} value={String(slot.id)}>
-                    {slot.label} ({slot.start_time} - {slot.end_time})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              </div>
+            ) : (
+              <Select
+                value={form.timeSlotId}
+                onValueChange={(value) =>
+                  setForm((prev) => ({ ...prev, timeSlotId: value }))
+                }
+                disabled={lockTimeSlot}
+              >
+                <SelectTrigger id="timeSlot" className="w-full">
+                  <SelectValue placeholder="Select time slot" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeSlots.length === 0 && (
+                    <SelectItem value="no-slots" disabled>
+                      No slots available
+                    </SelectItem>
+                  )}
+                  {timeSlots.map((slot) => (
+                    <SelectItem key={slot.id} value={String(slot.id)}>
+                      {slot.label} ({slot.start_time} - {slot.end_time})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="teacherName">Teacher Name</Label>
+            <Input
+              id="teacherName"
+              value={form.teacherName}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, teacherName: event.target.value }))
+              }
+              placeholder="Enter teacher name"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="purpose">Purpose</Label>

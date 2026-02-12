@@ -50,8 +50,10 @@ export async function POST(request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { name, location, capacity, description, status } =
-      await request.json();
+    const {
+      name, groupId, location, capacity, description,
+      notes, photo, canBeBooked, teacherId, status,
+    } = await request.json();
 
     if (!name) {
       return NextResponse.json(
@@ -73,29 +75,39 @@ export async function POST(request) {
         ? null
         : Number(capacity);
 
-    if (!Number.isInteger(normalizedCapacity) || normalizedCapacity < 0) {
+    if (normalizedCapacity !== null && (!Number.isInteger(normalizedCapacity) || normalizedCapacity < 0)) {
       return NextResponse.json(
         { error: "Capacity must be a non-negative integer" },
         { status: 400 }
       );
     }
 
+    const bookable = canBeBooked === undefined || canBeBooked === null ? 1 : canBeBooked ? 1 : 0;
+
     const db = await getDB();
     const result = await db
       .prepare(
-        "INSERT INTO classrooms (name, location, capacity, description, status) VALUES (?, ?, ?, ?, ?)"
+        `INSERT INTO classrooms (name, group_id, location, capacity, description, notes, photo, can_be_booked, teacher_id, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .bind(
         name,
+        groupId || null,
         location || null,
         normalizedCapacity,
         description || null,
+        notes || null,
+        photo || null,
+        bookable,
+        teacherId || null,
         normalizedStatus
       )
       .run();
 
     const classroom = await db
-      .prepare("SELECT * FROM classrooms WHERE id = ?")
+      .prepare(
+        "SELECT c.*, rg.name AS group_name FROM classrooms c LEFT JOIN room_groups rg ON rg.id = c.group_id WHERE c.id = ?"
+      )
       .bind(result.meta.last_row_id)
       .first();
 

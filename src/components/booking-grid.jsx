@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { CalendarDays, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,9 @@ function isWithin(date, start, end) {
 }
 
 export function BookingGrid() {
+  const searchParams = useSearchParams();
+  const dateFromUrl = searchParams.get("date");
+  
   const [sessions, setSessions] = useState([]);
   const [roomGroups, setRoomGroups] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
@@ -32,11 +36,12 @@ export function BookingGrid() {
 
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("all");
-  const [selectedDate, setSelectedDate] = useState(getTodayString());
+  const [selectedDate, setSelectedDate] = useState(dateFromUrl || getTodayString());
 
   const [bookingOpen, setBookingOpen] = useState(false);
   const [selectedClassroom, setSelectedClassroom] = useState(null);
   const [selectedSlotId, setSelectedSlotId] = useState("");
+  const [multiBookingMode, setMultiBookingMode] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -123,24 +128,59 @@ export function BookingGrid() {
   function handleOpenBooking(classroom, slot) {
     setSelectedClassroom(classroom);
     setSelectedSlotId(String(slot.id));
+    setMultiBookingMode(false);
     setBookingOpen(true);
+  }
+
+  function handleOpenMultiBooking() {
+    if (classrooms.length === 0) {
+      toast.error("No classrooms available");
+      return;
+    }
+    setSelectedClassroom(classrooms[0]);
+    setSelectedSlotId("");
+    setMultiBookingMode(true);
+    setBookingOpen(true);
+  }
+
+  function handleBookingSuccess() {
+    toast.success("Booking requested successfully");
+    setBookingOpen(false);
+    // Refresh bookings for the current date
+    const groupParam = selectedGroupId === "all" ? "" : selectedGroupId;
+    const bookingsUrl = groupParam
+      ? `/api/bookings?date=${selectedDate}&groupId=${groupParam}`
+      : `/api/bookings?date=${selectedDate}`;
+
+    fetch(bookingsUrl)
+      .then((res) => res.json())
+      .then((bookingData) => {
+        setBookings(bookingData.bookings || []);
+      })
+      .catch(() => toast.error("Failed to refresh bookings"));
   }
 
   return (
     <div className="space-y-6">
       <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-            <CalendarDays className="h-4 w-4 text-foreground" />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+              <CalendarDays className="h-4 w-4 text-foreground" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold text-foreground">
+                Booking Grid
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Choose a room and time slot to request a booking.
+              </p>
+            </div>
           </div>
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-foreground">
-              Booking Grid
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Choose a room and time slot to request a booking.
-            </p>
-          </div>
+          <Button onClick={handleOpenMultiBooking} variant="outline" size="sm">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Book Multiple Slots
+          </Button>
         </div>
       </div>
 
@@ -298,14 +338,13 @@ export function BookingGrid() {
         open={bookingOpen}
         onOpenChange={setBookingOpen}
         classroom={selectedClassroom}
+        classrooms={classrooms}
         initialDate={selectedDate}
         initialTimeSlotId={selectedSlotId}
-        lockDate
-        lockTimeSlot
-        onSuccess={() => {
-          toast.success("Booking requested successfully");
-          setBookingOpen(false);
-        }}
+        lockDate={!multiBookingMode}
+        lockTimeSlot={!multiBookingMode}
+        multiSelect={multiBookingMode}
+        onSuccess={handleBookingSuccess}
       />
     </div>
   );

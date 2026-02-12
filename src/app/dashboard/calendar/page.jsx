@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,8 +14,6 @@ import {
 } from "@/components/ui/select";
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const roomGroups = ["All Groups", "Academic", "Auditorium", "Skills Lab", "Admin", "Resource"];
-
 
 function buildCalendar(date) {
   const year = date.getFullYear();
@@ -46,9 +46,16 @@ function buildCalendar(date) {
   return cells;
 }
 
+function dateToString(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default function CalendarPage() {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(() => new Date());
-  const [group, setGroup] = useState("All Groups");
+  const [group, setGroup] = useState("all");
+  const [roomGroups, setRoomGroups] = useState([]);
+  const [bookingCounts, setBookingCounts] = useState({});
 
   const monthLabel = useMemo(
     () =>
@@ -63,6 +70,40 @@ export default function CalendarPage() {
 
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+
+  useEffect(() => {
+    fetch("/api/room-groups")
+      .then((r) => r.json())
+      .then((data) => setRoomGroups(data.roomGroups || []))
+      .catch(() => {});
+  }, []);
+
+  // Fetch booking counts for each visible day in the current month
+  useEffect(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const counts = {};
+    const fetches = [];
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const groupParam = group !== "all" ? `&groupId=${group}` : "";
+      fetches.push(
+        fetch(`/api/bookings?date=${dateStr}${groupParam}`)
+          .then((r) => r.json())
+          .then((data) => {
+            counts[dateStr] = (data.bookings || []).length;
+          })
+          .catch(() => {
+            counts[dateStr] = 0;
+          })
+      );
+    }
+
+    Promise.all(fetches).then(() => setBookingCounts({ ...counts }));
+  }, [currentDate, group]);
 
   return (
     <div className="space-y-6">
@@ -81,9 +122,10 @@ export default function CalendarPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {roomGroups.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
+              <SelectItem value="all">All Groups</SelectItem>
+              {roomGroups.map((g) => (
+                <SelectItem key={g.id} value={String(g.id)}>
+                  {g.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -134,13 +176,22 @@ export default function CalendarPage() {
               {cells.map((cell, index) => {
                 const key = `${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}`;
                 const isToday = key === todayKey && cell.isCurrentMonth;
+                const dateStr = cell.isCurrentMonth ? dateToString(cell.date) : null;
+                const count = dateStr ? bookingCounts[dateStr] || 0 : 0;
+
+                const handleClick = () => {
+                  if (cell.isCurrentMonth) {
+                    router.push(`/dashboard/classrooms?date=${dateStr}`);
+                  }
+                };
 
                 return (
                   <div
                     key={`${key}-${index}`}
+                    onClick={handleClick}
                     className={`min-h-[90px] rounded-sm border p-2 text-xs ${
                       cell.isCurrentMonth
-                        ? "bg-background"
+                        ? "bg-background cursor-pointer hover:bg-accent/50 transition-colors"
                         : "bg-muted/20 text-muted-foreground"
                     } ${isToday ? "bg-foreground/5" : ""}`}
                   >
@@ -149,6 +200,11 @@ export default function CalendarPage() {
                         {cell.day}
                       </span>
                     </div>
+                    {cell.isCurrentMonth && count > 0 && (
+                      <div className="mt-1 rounded bg-primary/10 px-1.5 py-0.5 text-center text-[0.65rem] font-medium text-primary">
+                        {count} booking{count !== 1 ? "s" : ""}
+                      </div>
+                    )}
                   </div>
                 );
               })}

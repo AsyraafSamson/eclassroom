@@ -8,9 +8,11 @@ const secret = new TextEncoder().encode(
 export async function createToken(user) {
   return new SignJWT({
     id: user.id,
+    username: user.username,
     email: user.email,
     role: user.role,
     name: user.full_name,
+    mustChangePassword: user.must_change_password === 1,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
