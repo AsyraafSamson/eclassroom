@@ -38,6 +38,7 @@ yarn-error.log*
 
 # cloudflare
 .wrangler/
+.open-next/
 
 # windows artifacts
 nul

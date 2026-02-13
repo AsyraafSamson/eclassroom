@@ -5,10 +5,11 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:remote": "wrangler pages dev --compatibility-date=2025-12-01 --port 3000 --live-reload -- pnpm run dev",
-    "build": "next build",
+    "build": "opennextjs-cloudflare build",
+    "build:next": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "opennextjs-cloudflare build && wrangler deploy",
+    "deploy": "npm run build && wrangler deploy",
     "preview": "opennextjs-cloudflare preview"
   },
   "dependencies": {

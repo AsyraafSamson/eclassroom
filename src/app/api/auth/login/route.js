@@ -68,9 +68,10 @@ export async function POST(request) {
     return response;
   } catch (error) {
     console.error("Login error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const message =
+      error?.message?.includes("D1") || error?.message?.includes("DB")
+        ? "Database not available. Please check D1 binding."
+        : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
