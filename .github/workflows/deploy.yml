@@ -36,20 +36,6 @@ jobs:
       - name: Create _worker.js entry point
         run: echo "export { default } from './worker.js';" > .open-next/_worker.js
 
-      - name: Create _routes.json for static assets
-        run: |
-          echo '{
-            "version": 1,
-            "include": ["/*"],
-            "exclude": [
-              "/_next/static/*",
-              "/_next/image*",
-              "/favicon.ico",
-              "/robots.txt",
-              "/sitemap.xml"
-            ]
-          }' > .open-next/_routes.json
-
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@latest pages deploy .open-next --project-name=eclassroom --commit-dirty=true
         env:
