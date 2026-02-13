@@ -3596,13 +3596,13 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
-      "bytes": 5988,
+    ".open-next/server-functions/default/.next/server/app/reset-password/page_client-reference-manifest.js": {
+      "bytes": 8666,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/reset-password/page_client-reference-manifest.js": {
-      "bytes": 8666,
+    ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
+      "bytes": 5988,
       "imports": [],
       "format": "cjs"
     },
@@ -3637,7 +3637,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/dashboard/classrooms/page_client-reference-manifest.js": {
-      "bytes": 16565,
+      "bytes": 16443,
       "imports": [],
       "format": "cjs"
     },
@@ -3671,13 +3671,13 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/api/sessions/route_client-reference-manifest.js": {
-      "bytes": 315,
+    ".open-next/server-functions/default/.next/server/app/api/school-info/route_client-reference-manifest.js": {
+      "bytes": 318,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/api/school-info/route_client-reference-manifest.js": {
-      "bytes": 318,
+    ".open-next/server-functions/default/.next/server/app/api/sessions/route_client-reference-manifest.js": {
+      "bytes": 315,
       "imports": [],
       "format": "cjs"
     },
@@ -3716,13 +3716,13 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/dashboard/admin/users/page_client-reference-manifest.js": {
-      "bytes": 16331,
+    ".open-next/server-functions/default/.next/server/app/dashboard/admin/weeks/page_client-reference-manifest.js": {
+      "bytes": 16258,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/dashboard/admin/weeks/page_client-reference-manifest.js": {
-      "bytes": 16258,
+    ".open-next/server-functions/default/.next/server/app/dashboard/admin/users/page_client-reference-manifest.js": {
+      "bytes": 16331,
       "imports": [],
       "format": "cjs"
     },
@@ -3856,11 +3856,6 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js": {
-      "bytes": 318,
-      "imports": [],
-      "format": "cjs"
-    },
     ".open-next/server-functions/default/.next/server/app/api/auth/me/route_client-reference-manifest.js": {
       "bytes": 314,
       "imports": [],
@@ -3868,6 +3863,11 @@
     },
     ".open-next/server-functions/default/.next/server/app/api/auth/login/route_client-reference-manifest.js": {
       "bytes": 317,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js": {
+      "bytes": 318,
       "imports": [],
       "format": "cjs"
     },
@@ -3920,14 +3920,14 @@
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\_not-found\\page_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\_global-error\\page_client-reference-manifest.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/app/reset-password/page_client-reference-manifest.js",
           "kind": "require-call",
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\reset-password\\page_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\_global-error\\page_client-reference-manifest.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/login/page_client-reference-manifest.js",
@@ -3995,14 +3995,14 @@
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\stats\\route_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/api/sessions/route_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\sessions\\route_client-reference-manifest.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/app/api/school-info/route_client-reference-manifest.js",
           "kind": "require-call",
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\school-info\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/sessions/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\sessions\\route_client-reference-manifest.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/api/room-groups/route_client-reference-manifest.js",
@@ -4040,14 +4040,14 @@
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\bookings\\route_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/dashboard/admin/users/page_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\dashboard\\admin\\users\\page_client-reference-manifest.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/app/dashboard/admin/weeks/page_client-reference-manifest.js",
           "kind": "require-call",
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\dashboard\\admin\\weeks\\page_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/dashboard/admin/users/page_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\dashboard\\admin\\users\\page_client-reference-manifest.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/dashboard/admin/sessions/page_client-reference-manifest.js",
@@ -4180,11 +4180,6 @@
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\profile\\route_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\logout\\route_client-reference-manifest.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/app/api/auth/me/route_client-reference-manifest.js",
           "kind": "require-call",
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\me\\route_client-reference-manifest.js"
@@ -4193,6 +4188,11 @@
           "path": ".open-next/server-functions/default/.next/server/app/api/auth/login/route_client-reference-manifest.js",
           "kind": "require-call",
           "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\login\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\dev\\clients\\eclassroom\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\logout\\route_client-reference-manifest.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/api/auth/forgot-password/route_client-reference-manifest.js",
@@ -8005,11 +8005,11 @@
         ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js": {
           "bytesInOutput": 7082
         },
-        ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
-          "bytesInOutput": 5741
-        },
         ".open-next/server-functions/default/.next/server/app/reset-password/page_client-reference-manifest.js": {
           "bytesInOutput": 8262
+        },
+        ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
+          "bytesInOutput": 5741
         },
         ".open-next/server-functions/default/.next/server/app/login/page_client-reference-manifest.js": {
           "bytesInOutput": 8204
@@ -8030,7 +8030,7 @@
           "bytesInOutput": 15579
         },
         ".open-next/server-functions/default/.next/server/app/dashboard/classrooms/page_client-reference-manifest.js": {
-          "bytesInOutput": 15969
+          "bytesInOutput": 15847
         },
         ".open-next/server-functions/default/.next/server/app/dashboard/calendar/page_client-reference-manifest.js": {
           "bytesInOutput": 15645
@@ -8050,11 +8050,11 @@
         ".open-next/server-functions/default/.next/server/app/api/stats/route_client-reference-manifest.js": {
           "bytesInOutput": 447
         },
-        ".open-next/server-functions/default/.next/server/app/api/sessions/route_client-reference-manifest.js": {
-          "bytesInOutput": 453
-        },
         ".open-next/server-functions/default/.next/server/app/api/school-info/route_client-reference-manifest.js": {
           "bytesInOutput": 459
+        },
+        ".open-next/server-functions/default/.next/server/app/api/sessions/route_client-reference-manifest.js": {
+          "bytesInOutput": 453
         },
         ".open-next/server-functions/default/.next/server/app/api/room-groups/route_client-reference-manifest.js": {
           "bytesInOutput": 459
@@ -8077,11 +8077,11 @@
         ".open-next/server-functions/default/.next/server/app/api/bookings/route_client-reference-manifest.js": {
           "bytesInOutput": 454
         },
-        ".open-next/server-functions/default/.next/server/app/dashboard/admin/users/page_client-reference-manifest.js": {
-          "bytesInOutput": 15736
-        },
         ".open-next/server-functions/default/.next/server/app/dashboard/admin/weeks/page_client-reference-manifest.js": {
           "bytesInOutput": 15663
+        },
+        ".open-next/server-functions/default/.next/server/app/dashboard/admin/users/page_client-reference-manifest.js": {
+          "bytesInOutput": 15736
         },
         ".open-next/server-functions/default/.next/server/app/dashboard/admin/sessions/page_client-reference-manifest.js": {
           "bytesInOutput": 15618
@@ -8161,14 +8161,14 @@
         ".open-next/server-functions/default/.next/server/app/api/auth/profile/route_client-reference-manifest.js": {
           "bytesInOutput": 462
         },
-        ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js": {
-          "bytesInOutput": 460
-        },
         ".open-next/server-functions/default/.next/server/app/api/auth/me/route_client-reference-manifest.js": {
           "bytesInOutput": 452
         },
         ".open-next/server-functions/default/.next/server/app/api/auth/login/route_client-reference-manifest.js": {
           "bytesInOutput": 458
+        },
+        ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js": {
+          "bytesInOutput": 460
         },
         ".open-next/server-functions/default/.next/server/app/api/auth/forgot-password/route_client-reference-manifest.js": {
           "bytesInOutput": 478
@@ -8573,7 +8573,7 @@
           "bytesInOutput": 70602
         }
       },
-      "bytes": 2318596
+      "bytes": 2318474
     }
   }
 }
