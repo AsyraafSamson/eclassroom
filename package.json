@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "opennextjs-cloudflare build && node -e \"require('fs').writeFileSync('.open-next/_worker.js','export { default } from \\\"./worker.js\\\";');require('fs').cpSync('.open-next/assets','.open-next',{recursive:true})\" && wrangler pages deploy .open-next --project-name=eclassroom --branch=main --commit-dirty=true",
     "preview": "opennextjs-cloudflare preview"
   },
   "dependencies": {

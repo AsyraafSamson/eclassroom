@@ -30,8 +30,10 @@ jobs:
       - name: Build with OpenNext
         run: npx opennextjs-cloudflare build
 
-      - name: Copy static assets to build root
-        run: cp -r .open-next/assets/* .open-next/
+      - name: Prepare deploy directory
+        run: |
+          echo "export { default } from './worker.js';" > .open-next/_worker.js
+          cp -r .open-next/assets/* .open-next/
 
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@latest pages deploy .open-next --project-name=eclassroom --branch=main --commit-dirty=true
