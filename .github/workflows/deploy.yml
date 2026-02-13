@@ -34,6 +34,30 @@ jobs:
         run: |
           echo "export { default } from './worker.js';" > .open-next/_worker.js
           cp -r .open-next/assets/* .open-next/
+          
+      - name: Patch worker to serve static assets
+        run: |
+          node -e "
+          const fs = require('fs');
+          const workerPath = '.open-next/worker.js';
+          let content = fs.readFileSync(workerPath, 'utf8');
+          
+          const searchStr = 'const url = new URL(request.url);';
+          const replaceStr = \`const url = new URL(request.url);
+            
+            // Serve static assets from Cloudflare Pages ASSETS binding
+            if (url.pathname.startsWith('/_next/static/') || 
+                url.pathname.match(/\\\\.(js|css|woff2|woff|ttf|otf|eot|svg|png|jpg|jpeg|gif|webp|ico|json|xml|txt)$/)) {
+                if (env.ASSETS) {
+                    return env.ASSETS.fetch(request);
+                }
+            }
+            \`;
+          
+          content = content.replace(searchStr, replaceStr);
+          fs.writeFileSync(workerPath, content);
+          console.log('Worker patched successfully');
+          "
 
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@latest pages deploy .open-next --project-name=eclassroom --branch=main --commit-dirty=true
