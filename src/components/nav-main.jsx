@@ -26,7 +26,14 @@ export function NavMain({ items }) {
               isActive={
                 item.url === "/dashboard"
                   ? pathname === "/dashboard"
-                  : pathname.startsWith(item.url)
+                  : items.some(
+                      (other) =>
+                        other.url !== item.url &&
+                        other.url.startsWith(item.url) &&
+                        pathname.startsWith(other.url)
+                    )
+                    ? false
+                    : pathname.startsWith(item.url)
               }
               tooltip={item.title}
             >

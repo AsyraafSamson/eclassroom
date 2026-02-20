@@ -42,7 +42,13 @@ export async function middleware(request) {
     const { payload } = await jwtVerify(token, secret);
     
     // Check if user must change password
-    if (payload.mustChangePassword && !pathname.startsWith("/first-login")) {
+    // Allow /api/auth and /api/departments through (needed by first-login profile form)
+    if (
+      payload.mustChangePassword &&
+      !pathname.startsWith("/first-login") &&
+      !pathname.startsWith("/api/auth") &&
+      !pathname.startsWith("/api/departments")
+    ) {
       return NextResponse.redirect(new URL("/first-login", request.url));
     }
     

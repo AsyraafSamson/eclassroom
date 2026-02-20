@@ -12,7 +12,7 @@ export async function createToken(user) {
     email: user.email,
     role: user.role,
     name: user.full_name,
-    mustChangePassword: user.must_change_password === 1,
+    mustChangePassword: user.must_change_password === 1 || user.last_login === null || user.last_login === undefined,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")

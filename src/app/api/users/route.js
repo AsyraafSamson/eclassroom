@@ -18,6 +18,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const role = searchParams.get("role") || "";
+    const all = searchParams.get("all") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
 
     const db = await getDB();
@@ -34,6 +35,25 @@ export async function GET(request) {
     if (role && (role === "admin" || role === "user")) {
       whereClause += " AND u.role = ?";
       bindings.push(role);
+    }
+
+    // If all=true, return all users without pagination
+    if (all) {
+      const { results } = await db
+        .prepare(
+          `SELECT u.id, u.username, u.email, u.full_name, u.role, u.department_id,
+                  d.name AS department_name, u.last_login, u.created_at
+           FROM users u
+           LEFT JOIN departments d ON d.id = u.department_id
+           ${whereClause}
+           ORDER BY u.created_at DESC`
+        )
+        .bind(...bindings)
+        .all();
+
+      return NextResponse.json({
+        users: results,
+      });
     }
 
     // Count total
@@ -144,7 +164,7 @@ export async function POST(request) {
 
     const result = await db
       .prepare(
-        "INSERT INTO users (username, email, password_hash, full_name, role, department_id) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO users (username, email, password_hash, full_name, role, department_id, must_change_password) VALUES (?, ?, ?, ?, ?, ?, 1)"
       )
       .bind(
         username || null,

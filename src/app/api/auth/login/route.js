@@ -39,11 +39,16 @@ export async function POST(request) {
       );
     }
 
-    // Update last_login timestamp
-    await db
-      .prepare("UPDATE users SET last_login = datetime('now') WHERE id = ?")
-      .bind(user.id)
-      .run();
+    // Only update last_login for returning users (not first-time users)
+    // First-time users (last_login=NULL or must_change_password=1) get
+    // last_login set when they complete their profile on /first-login
+    const isFirstTime = user.must_change_password === 1 || user.last_login === null;
+    if (!isFirstTime) {
+      await db
+        .prepare("UPDATE users SET last_login = datetime('now') WHERE id = ?")
+        .bind(user.id)
+        .run();
+    }
 
     const token = await createToken(user);
 
