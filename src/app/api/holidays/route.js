@@ -18,7 +18,7 @@ export async function GET(request) {
     if (sessionId) {
       ({ results } = await db
         .prepare(
-          "SELECT h.*, s.name AS session_name FROM holidays h LEFT JOIN sessions s ON s.id = h.session_id WHERE h.session_id = ? ORDER BY h.date ASC"
+          "SELECT h.*, s.name AS session_name FROM holidays h LEFT JOIN sessions s ON s.id = h.session_id WHERE h.session_id = ? OR h.session_id IS NULL ORDER BY h.date ASC"
         )
         .bind(sessionId)
         .all());

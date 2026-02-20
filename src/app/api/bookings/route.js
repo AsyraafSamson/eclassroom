@@ -25,10 +25,10 @@ export async function GET(request) {
     const db = await getDB();
 
     const baseQuery = `
-      SELECT b.id, b.classroom_id, b.time_slot_id, b.booking_date,
+      SELECT b.id, b.user_id, b.classroom_id, b.time_slot_id, b.booking_date,
              b.session_id, b.teacher_name, b.purpose, b.status,
              c.name AS classroom_name,
-             u.full_name AS user_name
+             u.full_name AS user_name, u.username
       FROM bookings b
       JOIN classrooms c ON c.id = b.classroom_id
       LEFT JOIN users u ON u.id = b.user_id
@@ -64,8 +64,24 @@ export async function POST(request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { classroomId, bookingDate, timeSlotId, sessionId, teacherName, purpose } =
+    const { classroomId, bookingDate, timeSlotId, sessionId, purpose, userId } =
       await request.json();
+
+    // Admin can book on behalf of another user
+    let bookingUserId = user.id;
+    let bookingUsername = user.username;
+    if (userId && user.role === "admin") {
+      const db2 = await getDB();
+      const targetUser = await db2
+        .prepare("SELECT id, username FROM users WHERE id = ?")
+        .bind(userId)
+        .first();
+      if (!targetUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      bookingUserId = targetUser.id;
+      bookingUsername = targetUser.username;
+    }
 
     if (!classroomId || !bookingDate || !timeSlotId) {
       return NextResponse.json(
@@ -109,6 +125,21 @@ export async function POST(request) {
       );
     }
 
+    // Check if the date falls on a holiday
+    const holiday = await db
+      .prepare(
+        "SELECT id, holiday_name FROM holidays WHERE is_enabled = 1 AND date <= ? AND (end_date IS NULL AND date = ? OR end_date IS NOT NULL AND end_date >= ?)"
+      )
+      .bind(bookingDate, bookingDate, bookingDate)
+      .first();
+
+    if (holiday) {
+      return NextResponse.json(
+        { error: `Cannot book on this date — it is a holiday: ${holiday.holiday_name}` },
+        { status: 400 }
+      );
+    }
+
     // Check slot not already booked
     const existing = await db
       .prepare(
@@ -142,7 +173,7 @@ export async function POST(request) {
         .prepare(
           "SELECT COUNT(*) AS cnt FROM bookings WHERE user_id = ? AND session_id = ?"
         )
-        .bind(user.id, resolvedSessionId)
+        .bind(bookingUserId, resolvedSessionId)
         .first();
 
       if (countRow && countRow.cnt >= BOOKING_LIMIT_PER_SESSION) {
@@ -158,14 +189,14 @@ export async function POST(request) {
         "INSERT INTO bookings (user_id, classroom_id, booking_date, time_slot_id, session_id, teacher_name, purpose, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
       )
       .bind(
-        user.id,
+        bookingUserId,
         classroomId,
         bookingDate,
         timeSlotId,
         resolvedSessionId,
-        teacherName || null,
+        bookingUsername,
         purpose || null,
-        "pending"
+        "approved"
       )
       .run();
 

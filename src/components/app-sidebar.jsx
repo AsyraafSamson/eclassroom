@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Settings, School } from "lucide-react";
+import { CalendarDays, LayoutDashboard, School, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,8 +21,13 @@ const adminNav = [
     icon: LayoutDashboard,
   },
   {
-    title: "Classrooms",
+    title: "Bookings",
     url: "/dashboard/classrooms",
+    icon: CalendarDays,
+  },
+  {
+    title: "Classrooms",
+    url: "/dashboard/admin/rooms",
     icon: School,
   },
   {
@@ -39,14 +44,9 @@ const userNav = [
     icon: LayoutDashboard,
   },
   {
-    title: "My Dashboard",
-    url: "/dashboard/user",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Classrooms",
+    title: "Bookings",
     url: "/dashboard/classrooms",
-    icon: School,
+    icon: CalendarDays,
   },
 ];
 

@@ -34,27 +34,30 @@ export function BookingDialog({
   lockTimeSlot = false,
   multiSelect = false,
   classrooms = [],
+  editBooking = null,
+  currentUser = null,
 }) {
   const [loading, setLoading] = useState(false);
   const [timeSlots, setTimeSlots] = useState([]);
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [selectedClassroomId, setSelectedClassroomId] = useState("");
+  const [users, setUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState("");
   const [form, setForm] = useState({
     bookingDate: "",
     timeSlotId: "",
     purpose: "",
-    teacherName: "",
   });
 
   useEffect(() => {
     if (!open) return;
 
     setForm({
-      bookingDate: initialDate || "",
-      timeSlotId: initialTimeSlotId || "",
-      purpose: "",
-      teacherName: "",
+      bookingDate: editBooking?.booking_date || initialDate || "",
+      timeSlotId: editBooking ? String(editBooking.time_slot_id) : initialTimeSlotId || "",
+      purpose: editBooking?.purpose || "",
     });
+    setSelectedUserId("");
 
     if (multiSelect) {
       setSelectedSlots(initialTimeSlotId ? [initialTimeSlotId] : []);
@@ -67,7 +70,15 @@ export function BookingDialog({
       .catch(() => {
         toast.error("Failed to load time slots");
       });
-  }, [open, initialDate, initialTimeSlotId, multiSelect, classroom]);
+
+    // Admin: fetch user list for "book on behalf of"
+    if (currentUser?.role === "admin" && !editBooking) {
+      fetch("/api/users")
+        .then((res) => res.json())
+        .then((data) => setUsers(data.users || []))
+        .catch(() => {});
+    }
+  }, [open, initialDate, initialTimeSlotId, multiSelect, classroom, currentUser, editBooking]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -91,7 +102,24 @@ export function BookingDialog({
     setLoading(true);
 
     try {
-      if (multiSelect) {
+      if (editBooking) {
+        // Edit existing booking
+        const res = await fetch(`/api/bookings/${editBooking.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ purpose: form.purpose }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to update booking");
+        }
+
+        onSuccess?.(data.booking);
+        onOpenChange(false);
+        toast.success("Booking updated successfully");
+      } else if (multiSelect) {
         // Create multiple bookings
         const res = await fetch("/api/bookings/bulk", {
           method: "POST",
@@ -101,7 +129,7 @@ export function BookingDialog({
             bookingDate: form.bookingDate,
             timeSlotIds: slotsToBook,
             purpose: form.purpose,
-            teacherName: form.teacherName,
+            ...(selectedUserId && { userId: parseInt(selectedUserId, 10) }),
           }),
         });
 
@@ -124,7 +152,7 @@ export function BookingDialog({
             bookingDate: form.bookingDate,
             timeSlotId: form.timeSlotId,
             purpose: form.purpose,
-            teacherName: form.teacherName,
+            ...(selectedUserId && { userId: parseInt(selectedUserId, 10) }),
           }),
         });
 
@@ -149,9 +177,11 @@ export function BookingDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Book Classroom</DialogTitle>
+          <DialogTitle>{editBooking ? "Edit Booking" : "Book Classroom"}</DialogTitle>
           <DialogDescription>
-            {multiSelect
+            {editBooking
+              ? `Edit your booking for ${editBooking.classroom_name || "this classroom"}.`
+              : multiSelect
               ? "Select classrooms and time slots to book multiple at once."
               : classroom?.name
               ? `Request a booking for ${classroom.name}.`
@@ -188,7 +218,7 @@ export function BookingDialog({
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, bookingDate: event.target.value }))
               }
-              disabled={lockDate}
+              disabled={lockDate || !!editBooking}
               required
             />
           </div>
@@ -231,7 +261,7 @@ export function BookingDialog({
                 onValueChange={(value) =>
                   setForm((prev) => ({ ...prev, timeSlotId: value }))
                 }
-                disabled={lockTimeSlot}
+                disabled={lockTimeSlot || !!editBooking}
               >
                 <SelectTrigger id="timeSlot" className="w-full">
                   <SelectValue placeholder="Select time slot" />
@@ -251,17 +281,27 @@ export function BookingDialog({
               </Select>
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="teacherName">Teacher Name</Label>
-            <Input
-              id="teacherName"
-              value={form.teacherName}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, teacherName: event.target.value }))
-              }
-              placeholder="Enter teacher name"
-            />
-          </div>
+          {currentUser?.role === "admin" && !editBooking && users.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="bookForUser">Book for User</Label>
+              <Select
+                value={selectedUserId}
+                onValueChange={(val) => setSelectedUserId(val === "self" ? "" : val)}
+              >
+                <SelectTrigger id="bookForUser" className="w-full">
+                  <SelectValue placeholder="Myself (default)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="self">Myself ({currentUser.username})</SelectItem>
+                  {users.map((u) => (
+                    <SelectItem key={u.id} value={String(u.id)}>
+                      {u.username} {u.full_name ? `(${u.full_name})` : ""} - {u.role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="purpose">Purpose</Label>
             <Textarea
@@ -283,7 +323,7 @@ export function BookingDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Submitting..." : "Submit Request"}
+              {loading ? "Submitting..." : editBooking ? "Save Changes" : "Submit Request"}
             </Button>
           </DialogFooter>
         </form>

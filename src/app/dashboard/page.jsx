@@ -62,19 +62,16 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <Button asChild>
-              <Link href="/dashboard/classrooms">
-                {isAdmin ? "Manage Classrooms" : "Browse Classrooms"}
-              </Link>
+              <Link href="/dashboard/classrooms">Book Classrooms</Link>
             </Button>
-            {isAdmin ? (
+            {isAdmin && (
               <Button asChild variant="outline">
-                <Link href="/dashboard/admin">Open admin settings</Link>
+                <Link href="/dashboard/admin/rooms">Manage Classrooms</Link>
               </Button>
-            ) : (
+            )}
+            {isAdmin && (
               <Button asChild variant="outline">
-                <Link href="/dashboard/classrooms">
-                  View availability overview
-                </Link>
+                <Link href="/dashboard/admin">Open Admin Settings</Link>
               </Button>
             )}
           </CardContent>

@@ -50,19 +50,18 @@ export async function PATCH(request, { params }) {
     }
 
     const { id } = await params;
-    const { status } = await request.json();
-
-    if (!status || !["pending", "approved", "rejected"].includes(status)) {
-      return NextResponse.json(
-        { error: "Invalid status" },
-        { status: 400 }
-      );
-    }
+    const body = await request.json();
+    const { status, purpose } = body;
 
     const db = await getDB();
 
     const existing = await db
-      .prepare("SELECT id, user_id, status FROM bookings WHERE id = ?")
+      .prepare(
+        `SELECT b.id, b.user_id, b.status, b.booking_date, ts.end_time
+         FROM bookings b
+         LEFT JOIN time_slots ts ON ts.id = b.time_slot_id
+         WHERE b.id = ?`
+      )
       .bind(id)
       .first();
 
@@ -73,16 +72,54 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    // Only admin can approve/reject, user can only cancel their own
+    // Only admin or booking owner can edit
     if (user.role !== "admin" && existing.user_id !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Check if the booking time has already passed
+    const now = new Date();
+    const slotEnd = new Date(`${existing.booking_date}T${existing.end_time}`);
+    if (slotEnd < now) {
+      return NextResponse.json(
+        { error: "Cannot modify a booking that has already passed" },
+        { status: 400 }
+      );
+    }
+
+    // Build dynamic update
+    const updates = [];
+    const values = [];
+
+    if (status) {
+      if (!["pending", "approved", "rejected"].includes(status)) {
+        return NextResponse.json(
+          { error: "Invalid status" },
+          { status: 400 }
+        );
+      }
+      updates.push("status = ?");
+      values.push(status);
+    }
+
+    if (purpose !== undefined) {
+      updates.push("purpose = ?");
+      values.push(purpose);
+    }
+
+    if (updates.length === 0) {
+      return NextResponse.json(
+        { error: "No fields to update" },
+        { status: 400 }
+      );
+    }
+
+    updates.push("updated_at = datetime('now')");
+    values.push(id);
+
     await db
-      .prepare(
-        "UPDATE bookings SET status = ?, updated_at = datetime('now') WHERE id = ?"
-      )
-      .bind(status, id)
+      .prepare(`UPDATE bookings SET ${updates.join(", ")} WHERE id = ?`)
+      .bind(...values)
       .run();
 
     const booking = await db
@@ -119,7 +156,12 @@ export async function DELETE(request, { params }) {
     const db = await getDB();
 
     const existing = await db
-      .prepare("SELECT id, user_id FROM bookings WHERE id = ?")
+      .prepare(
+        `SELECT b.id, b.user_id, b.booking_date, ts.end_time
+         FROM bookings b
+         LEFT JOIN time_slots ts ON ts.id = b.time_slot_id
+         WHERE b.id = ?`
+      )
       .bind(id)
       .first();
 
@@ -133,6 +175,16 @@ export async function DELETE(request, { params }) {
     // Only admin or booking owner can delete
     if (user.role !== "admin" && existing.user_id !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Check if the booking time has already passed
+    const now = new Date();
+    const slotEnd = new Date(`${existing.booking_date}T${existing.end_time}`);
+    if (slotEnd < now) {
+      return NextResponse.json(
+        { error: "Cannot delete a booking that has already passed" },
+        { status: 400 }
+      );
     }
 
     await db.prepare("DELETE FROM bookings WHERE id = ?").bind(id).run();

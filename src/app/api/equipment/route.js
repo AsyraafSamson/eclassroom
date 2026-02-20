@@ -9,26 +9,10 @@ export async function GET(request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const classroomId = searchParams.get("classroomId");
-
     const db = await getDB();
-    let results;
-
-    if (classroomId) {
-      ({ results } = await db
-        .prepare(
-          "SELECT e.*, c.name AS classroom_name FROM equipment e LEFT JOIN classrooms c ON c.id = e.classroom_id WHERE e.classroom_id = ? ORDER BY e.name ASC"
-        )
-        .bind(classroomId)
-        .all());
-    } else {
-      ({ results } = await db
-        .prepare(
-          "SELECT e.*, c.name AS classroom_name FROM equipment e LEFT JOIN classrooms c ON c.id = e.classroom_id ORDER BY e.name ASC"
-        )
-        .all());
-    }
+    const { results } = await db
+      .prepare("SELECT * FROM equipment ORDER BY name ASC")
+      .all();
 
     return NextResponse.json({ equipment: results });
   } catch (error) {
@@ -50,7 +34,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { name, description, classroomId } = await request.json();
+    const { name, type, options } = await request.json();
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -59,12 +43,20 @@ export async function POST(request) {
       );
     }
 
+    const equipmentType = type || "CHECKBOX";
+    if (!["CHECKBOX", "TEXT", "SELECT"].includes(equipmentType)) {
+      return NextResponse.json(
+        { error: "Invalid equipment type" },
+        { status: 400 }
+      );
+    }
+
     const db = await getDB();
     const result = await db
       .prepare(
-        "INSERT INTO equipment (name, description, classroom_id) VALUES (?, ?, ?)"
+        "INSERT INTO equipment (name, type, options) VALUES (?, ?, ?)"
       )
-      .bind(name.trim(), description || null, classroomId || null)
+      .bind(name.trim(), equipmentType, options || null)
       .run();
 
     const equipment = await db

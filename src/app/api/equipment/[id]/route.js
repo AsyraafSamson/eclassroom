@@ -13,11 +13,19 @@ export async function PUT(request, { params }) {
     }
 
     const { id } = await params;
-    const { name, description, classroomId } = await request.json();
+    const { name, type, options } = await request.json();
 
     if (!name || !name.trim()) {
       return NextResponse.json(
         { error: "Equipment name is required" },
+        { status: 400 }
+      );
+    }
+
+    const equipmentType = type || "CHECKBOX";
+    if (!["CHECKBOX", "TEXT", "SELECT"].includes(equipmentType)) {
+      return NextResponse.json(
+        { error: "Invalid equipment type" },
         { status: 400 }
       );
     }
@@ -38,9 +46,9 @@ export async function PUT(request, { params }) {
 
     await db
       .prepare(
-        "UPDATE equipment SET name = ?, description = ?, classroom_id = ?, updated_at = datetime('now') WHERE id = ?"
+        "UPDATE equipment SET name = ?, type = ?, options = ?, updated_at = datetime('now') WHERE id = ?"
       )
-      .bind(name.trim(), description || null, classroomId || null, id)
+      .bind(name.trim(), equipmentType, options || null, id)
       .run();
 
     const equipment = await db
@@ -83,6 +91,8 @@ export async function DELETE(request, { params }) {
       );
     }
 
+    // Clean up classroom_equipment entries first
+    await db.prepare("DELETE FROM classroom_equipment WHERE equipment_id = ?").bind(id).run();
     await db.prepare("DELETE FROM equipment WHERE id = ?").bind(id).run();
 
     return NextResponse.json({ success: true });

@@ -34,7 +34,7 @@ const managementItems = [
     title: "Rooms",
     description: "Manage classrooms, labs, and shared spaces.",
     icon: Building2,
-    href: "/dashboard/classrooms",
+    href: "/dashboard/admin/rooms",
   },
   {
     title: "Departments",

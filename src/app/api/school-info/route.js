@@ -14,7 +14,7 @@ export async function GET() {
       schoolInfo: schoolInfo || {
         id: 1,
         site_title: "eClassroom",
-        school_name: "My School",
+        school_name: "",
         website: null,
         logo: null,
         login_message: null,
@@ -52,11 +52,11 @@ export async function PUT(request) {
          WHERE id = 1`
       )
       .bind(
-        siteTitle || "eClassroom",
-        schoolName || "My School",
-        website || null,
-        logo || null,
-        loginMessage || null
+        siteTitle?.trim() || "eClassroom",
+        schoolName?.trim() || "",
+        website?.trim() || null,
+        logo?.trim() || null,
+        loginMessage?.trim() || null
       )
       .run();
 

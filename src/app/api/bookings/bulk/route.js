@@ -11,8 +11,24 @@ export async function POST(request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { classroomId, bookingDate, timeSlotIds, sessionId, teacherName, purpose } =
+    const { classroomId, bookingDate, timeSlotIds, sessionId, purpose, userId } =
       await request.json();
+
+    // Admin can book on behalf of another user
+    let bookingUserId = user.id;
+    let bookingUsername = user.username;
+    if (userId && user.role === "admin") {
+      const db2 = await getDB();
+      const targetUser = await db2
+        .prepare("SELECT id, username FROM users WHERE id = ?")
+        .bind(userId)
+        .first();
+      if (!targetUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      bookingUserId = targetUser.id;
+      bookingUsername = targetUser.username;
+    }
 
     if (!classroomId || !bookingDate || !timeSlotIds || timeSlotIds.length === 0) {
       return NextResponse.json(
@@ -61,7 +77,7 @@ export async function POST(request) {
         .prepare(
           "SELECT COUNT(*) AS cnt FROM bookings WHERE user_id = ? AND session_id = ?"
         )
-        .bind(user.id, resolvedSessionId)
+        .bind(bookingUserId, resolvedSessionId)
         .first();
 
       const currentCount = countRow?.cnt || 0;
@@ -75,6 +91,21 @@ export async function POST(request) {
           { status: 429 }
         );
       }
+    }
+
+    // Check if the date falls on a holiday
+    const holiday = await db
+      .prepare(
+        "SELECT id, holiday_name FROM holidays WHERE is_enabled = 1 AND date <= ? AND (end_date IS NULL AND date = ? OR end_date IS NOT NULL AND end_date >= ?)"
+      )
+      .bind(bookingDate, bookingDate, bookingDate)
+      .first();
+
+    if (holiday) {
+      return NextResponse.json(
+        { error: `Cannot book on this date — it is a holiday: ${holiday.holiday_name}` },
+        { status: 400 }
+      );
     }
 
     // Check if any slots are already booked
@@ -104,14 +135,14 @@ export async function POST(request) {
           "INSERT INTO bookings (user_id, classroom_id, booking_date, time_slot_id, session_id, teacher_name, purpose, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         )
         .bind(
-          user.id,
+          bookingUserId,
           classroomId,
           bookingDate,
           timeSlotId,
           resolvedSessionId,
-          teacherName || null,
+          bookingUsername,
           purpose || null,
-          "pending"
+          "approved"
         )
         .run();
 

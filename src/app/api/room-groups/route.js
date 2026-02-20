@@ -11,7 +11,13 @@ export async function GET() {
 
     const db = await getDB();
     const { results } = await db
-      .prepare("SELECT id, name, description FROM room_groups ORDER BY name ASC")
+      .prepare(
+        `SELECT rg.id, rg.name, rg.description, COUNT(c.id) AS room_count
+         FROM room_groups rg
+         LEFT JOIN classrooms c ON c.group_id = rg.id
+         GROUP BY rg.id
+         ORDER BY rg.name ASC`
+      )
       .all();
 
     return NextResponse.json({ roomGroups: results });

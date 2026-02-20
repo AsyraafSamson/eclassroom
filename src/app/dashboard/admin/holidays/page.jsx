@@ -160,7 +160,8 @@ export default function HolidaysPage() {
       const res = await fetch(`/api/holidays${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setHolidays(data.holidays || []);
+      const sorted = (data.holidays || []).sort((a, b) => a.date.localeCompare(b.date));
+      setHolidays(sorted);
     } catch (error) {
       toast.error(error?.message || "Failed to load holidays");
     } finally {
