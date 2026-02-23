@@ -25,8 +25,8 @@ export default async function DashboardLayout({ children }) {
   return (
     <SidebarProvider>
       <AppSidebar user={user} siteTitle={siteTitle} />
-      <SidebarInset className="bg-background [background-image:radial-gradient(1200px_circle_at_0%_-20%,rgba(15,23,42,0.08),transparent_55%)] min-w-0">
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background/80 px-4 backdrop-blur">
+      <SidebarInset className="bg-background [background-image:radial-gradient(1200px_circle_at_0%_-20%,rgba(15,23,42,0.08),transparent_55%)]">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background/80 px-4 backdrop-blur">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
@@ -39,7 +39,7 @@ export default async function DashboardLayout({ children }) {
             </Badge>
           </div>
         </header>
-        <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8">{children}</div>
+        <div className="flex-1 p-4 md:p-6 lg:p-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
