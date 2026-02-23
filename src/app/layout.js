@@ -24,11 +24,6 @@ const sourceSerif = Source_Serif_4({
 export const metadata = {
   title: "eClassroom",
   description: "Classroom Management System",
-  icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-    ],
-  },
 };
 
 export default function RootLayout({ children }) {
