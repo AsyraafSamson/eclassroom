@@ -422,7 +422,7 @@ export function BookingGrid() {
             <table className="w-full border-separate border-spacing-0">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-20 border-b border-r bg-muted/40 px-4 py-3 text-left text-sm font-semibold text-foreground">
+                  <th className="sticky left-0 z-20 border-b border-r bg-muted px-4 py-3 text-left text-sm font-semibold text-foreground">
                     Room
                   </th>
                   {timeSlots.map((slot) => (
@@ -444,7 +444,7 @@ export function BookingGrid() {
                     key={classroom.id}
                     className={rowIndex % 2 ? "bg-muted/20" : "bg-background"}
                   >
-                    <td className={`sticky left-0 z-10 border-b border-r px-4 py-3 text-sm font-semibold text-foreground whitespace-nowrap ${rowIndex % 2 ? "bg-muted/20" : "bg-background"}`}>
+                    <td className={`sticky left-0 z-10 border-b border-r px-4 py-3 text-sm font-semibold text-foreground whitespace-nowrap ${rowIndex % 2 ? "bg-muted" : "bg-background"}`}>
                       <button
                         type="button"
                         className="inline-flex items-center gap-1 text-left hover:text-primary hover:underline transition"
