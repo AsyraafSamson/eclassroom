@@ -466,7 +466,7 @@ export default function ManageUsersPage() {
               Create, edit, and manage user accounts
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {selectedIds.size > 0 && (
               <Button
                 variant="destructive"
@@ -519,14 +519,14 @@ export default function ManageUsersPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 no-print">
-          <form onSubmit={handleSearch} className="flex items-center gap-2">
-            <div className="relative">
+          <form onSubmit={handleSearch} className="flex flex-1 items-center gap-2">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search users..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-64 pl-9"
+                className="w-full pl-9 sm:w-64"
               />
             </div>
           </form>
@@ -534,7 +534,7 @@ export default function ManageUsersPage() {
             value={roleFilter}
             onValueChange={(value) => setRoleFilter(value)}
           >
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-32 sm:w-36">
               <SelectValue placeholder="All Roles" />
             </SelectTrigger>
             <SelectContent>
@@ -585,7 +585,7 @@ export default function ManageUsersPage() {
               </div>
             )}
 
-            <div className="rounded-lg border" id="print-table">
+            <div className="rounded-lg border overflow-x-auto" id="print-table">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -741,7 +741,7 @@ export default function ManageUsersPage() {
             </DialogHeader>
             <div className="flex-1 overflow-auto">
               {batchPreview.length > 0 && (
-                <div className="rounded-lg border">
+                <div className="rounded-lg border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>

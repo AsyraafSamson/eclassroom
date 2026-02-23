@@ -259,7 +259,7 @@ export default function AdminRoomsPage() {
           </Button>
         </div>
       ) : (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border overflow-x-auto">
           <Table>
             <TableCaption>
               Showing {roomGroups.length} room group

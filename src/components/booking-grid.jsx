@@ -422,7 +422,7 @@ export function BookingGrid() {
             <table className="w-full border-separate border-spacing-0">
               <thead>
                 <tr>
-                  <th className="border-b bg-muted/40 px-4 py-3 text-left text-sm font-semibold text-foreground">
+                  <th className="sticky left-0 z-20 border-b border-r bg-muted/40 px-4 py-3 text-left text-sm font-semibold text-foreground">
                     Room
                   </th>
                   {timeSlots.map((slot) => (
@@ -444,7 +444,7 @@ export function BookingGrid() {
                     key={classroom.id}
                     className={rowIndex % 2 ? "bg-muted/20" : "bg-background"}
                   >
-                    <td className="border-b px-4 py-3 text-sm font-semibold text-foreground whitespace-nowrap">
+                    <td className={`sticky left-0 z-10 border-b border-r px-4 py-3 text-sm font-semibold text-foreground whitespace-nowrap ${rowIndex % 2 ? "bg-muted/20" : "bg-background"}`}>
                       <button
                         type="button"
                         className="inline-flex items-center gap-1 text-left hover:text-primary hover:underline transition"
@@ -479,7 +479,7 @@ export function BookingGrid() {
                           {notBookable ? (
                             <div className="rounded-md border border-gray-200 bg-gray-50 px-2 py-2 text-gray-400">
                               <Ban className="mx-auto h-3 w-3" />
-                              <div className="mt-0.5 text-[0.6rem]">Not Available</div>
+                              <div className="mt-0.5 text-xs">Not Available</div>
                             </div>
                           ) : isBooked ? (
                             <div
@@ -491,7 +491,7 @@ export function BookingGrid() {
                                     : "border-rose-200 bg-rose-50 text-rose-700"
                               }`}
                             >
-                              <div className="text-[0.7rem] font-semibold">
+                              <div className="text-xs font-semibold">
                                 {passed
                                   ? "Passed"
                                   : isOwner
@@ -499,7 +499,7 @@ export function BookingGrid() {
                                     : "Booked"}
                               </div>
                               <div
-                                className={`text-[0.6rem] ${
+                                className={`text-[0.65rem] leading-tight ${
                                   passed
                                     ? "text-gray-400"
                                     : isOwner
@@ -515,7 +515,7 @@ export function BookingGrid() {
                                 <div className="mt-1 flex items-center justify-center gap-1">
                                   <button
                                     type="button"
-                                    className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[0.6rem] text-blue-600 transition hover:bg-blue-100"
+                                    className="inline-flex items-center gap-0.5 rounded px-1.5 py-1 text-xs text-blue-600 transition hover:bg-blue-100"
                                     onClick={() =>
                                       handleEditBooking({
                                         ...booking,
@@ -523,17 +523,17 @@ export function BookingGrid() {
                                       })
                                     }
                                   >
-                                    <Pencil className="h-2.5 w-2.5" />
+                                    <Pencil className="h-3 w-3" />
                                     Edit
                                   </button>
                                   <button
                                     type="button"
-                                    className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[0.6rem] text-rose-600 transition hover:bg-rose-200"
+                                    className="inline-flex items-center gap-0.5 rounded px-1.5 py-1 text-xs text-rose-600 transition hover:bg-rose-200"
                                     onClick={() =>
                                       handleDeleteBooking(booking.id)
                                     }
                                   >
-                                    <Trash2 className="h-2.5 w-2.5" />
+                                    <Trash2 className="h-3 w-3" />
                                     Del
                                   </button>
                                 </div>
@@ -542,17 +542,17 @@ export function BookingGrid() {
                           ) : isPastDate ? (
                             <div className="rounded-md border border-gray-200 bg-gray-50 px-2 py-2 text-gray-400">
                               <Clock className="mx-auto h-3 w-3" />
-                              <div className="mt-0.5 text-[0.6rem]">Past Date</div>
+                              <div className="mt-0.5 text-xs">Past Date</div>
                             </div>
                           ) : isHoliday ? (
                             <div className="rounded-md border border-amber-200 bg-amber-50 px-2 py-2 text-amber-600">
                               <Gift className="mx-auto h-3 w-3" />
-                              <div className="mt-0.5 text-[0.6rem] font-medium">Holiday</div>
+                              <div className="mt-0.5 text-xs font-medium">Holiday</div>
                             </div>
                           ) : (
                             <button
                               type="button"
-                              className="w-full rounded-md border border-emerald-200 bg-emerald-50 px-2 py-2 text-[0.7rem] font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                              className="w-full rounded-md border border-emerald-200 bg-emerald-50 px-2 py-2.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
                               onClick={() =>
                                 handleOpenBooking(classroom, slot)
                               }
