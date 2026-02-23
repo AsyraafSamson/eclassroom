@@ -125,12 +125,24 @@ export async function POST(request) {
       );
     }
 
-    // Check if the date falls on a holiday
+    // Resolve session_id from date if not provided
+    let resolvedSessionId = sessionId || null;
+    if (!resolvedSessionId) {
+      const session = await db
+        .prepare(
+          "SELECT id FROM sessions WHERE start_date <= ? AND end_date >= ? LIMIT 1"
+        )
+        .bind(bookingDate, bookingDate)
+        .first();
+      if (session) resolvedSessionId = session.id;
+    }
+
+    // Check if the date falls on a holiday (scoped to session)
     const holiday = await db
       .prepare(
-        "SELECT id, holiday_name FROM holidays WHERE is_enabled = 1 AND date <= ? AND (end_date IS NULL AND date = ? OR end_date IS NOT NULL AND end_date >= ?)"
+        "SELECT id, holiday_name FROM holidays WHERE is_enabled = 1 AND (session_id = ? OR session_id IS NULL) AND date <= ? AND (end_date IS NULL AND date = ? OR end_date IS NOT NULL AND end_date >= ?)"
       )
-      .bind(bookingDate, bookingDate, bookingDate)
+      .bind(resolvedSessionId, bookingDate, bookingDate, bookingDate)
       .first();
 
     if (holiday) {
@@ -153,18 +165,6 @@ export async function POST(request) {
         { error: "This slot is already booked" },
         { status: 409 }
       );
-    }
-
-    // Resolve session_id from date if not provided
-    let resolvedSessionId = sessionId || null;
-    if (!resolvedSessionId) {
-      const session = await db
-        .prepare(
-          "SELECT id FROM sessions WHERE start_date <= ? AND end_date >= ? LIMIT 1"
-        )
-        .bind(bookingDate, bookingDate)
-        .first();
-      if (session) resolvedSessionId = session.id;
     }
 
     // Enforce booking limit per session (matches EzyBook's 20/session limit)
