@@ -418,7 +418,7 @@ export function BookingGrid() {
       {/* Booking Grid Table */}
       <div className="rounded-xl border bg-card shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full border-separate border-spacing-0">
+          <table className="w-full border-separate border-spacing-0 table-fixed">
             <thead>
               <tr>
                 {/* Corner cell: horizontal sticky only — top-sticky cannot work inside overflow-x-auto.
@@ -432,7 +432,7 @@ export function BookingGrid() {
                     className="border-b border-l bg-muted/40 px-1 sm:px-3 py-1 sm:py-1.5 text-center text-xs sm:text-sm font-semibold text-foreground min-w-[55px] sm:min-w-0"
                   >
                     <div className="text-[0.65rem] sm:text-sm">{slot.label}</div>
-                    <div className="mt-0.5 text-[0.55rem] sm:text-[0.65rem] font-normal text-muted-foreground leading-tight">
+                    <div className="mt-0.5 text-[0.6rem] sm:text-[0.65rem] font-normal text-muted-foreground leading-tight">
                       {slot.start_time}–{slot.end_time}
                     </div>
                   </th>
@@ -452,8 +452,8 @@ export function BookingGrid() {
                       className="inline-flex w-full items-start gap-1 text-left hover:text-primary hover:underline transition"
                       onClick={() => handleShowClassroomDetail(classroom)}
                     >
-                      {/* Mobile: wrap to 2 lines within fixed width */}
-                      <span className="sm:hidden line-clamp-2 break-words min-w-0 max-w-[63px] leading-tight">
+                      {/* Mobile: wrap to 2 lines within the sticky cell */}
+                      <span className="sm:hidden line-clamp-2 break-words min-w-0 max-w-full leading-tight">
                         {classroom.name}
                       </span>
                       {/* Desktop: full name no wrap */}
@@ -482,13 +482,13 @@ export function BookingGrid() {
                         className="border-b border-l px-1 sm:px-2 py-0.5 text-center text-xs"
                       >
                         {notBookable ? (
-                          <div className="rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-0.5 sm:py-1 text-gray-400">
-                            <Ban className="mx-auto h-3 w-3" />
-                            <div className="mt-0.5 text-[0.6rem] sm:text-xs leading-tight">N/A</div>
+                          <div className="flex flex-col items-center justify-center gap-0.5 rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-0.5 sm:py-1 text-gray-400">
+                            <Ban className="h-3 w-3" />
+                            <span className="text-[0.6rem] sm:text-xs leading-none">N/A</span>
                           </div>
                         ) : isBooked ? (
                           <div
-                            className={`rounded-md border px-1 sm:px-2 py-0.5 sm:py-1 ${
+                            className={`flex flex-col items-center justify-center rounded-md border px-1 sm:px-2 py-0.5 sm:py-1 ${
                               passed
                                 ? "border-gray-200 bg-gray-50 text-gray-500"
                                 : isOwner
@@ -496,16 +496,16 @@ export function BookingGrid() {
                                   : "border-rose-200 bg-rose-50 text-rose-700"
                             }`}
                           >
-                            <div className="text-[0.6rem] sm:text-xs font-semibold leading-tight">
+                            <div className="text-[0.6rem] sm:text-xs font-semibold leading-tight text-center">
                               {passed ? "Passed" : isOwner ? "Your Booking" : "Booked"}
                             </div>
                             <div
-                              className={`mt-0.5 leading-tight ${
+                              className={`leading-tight text-center ${
                                 passed ? "text-gray-400" : isOwner ? "text-blue-600" : "text-rose-600"
                               }`}
                             >
                               {/* Mobile: first name only; desktop: full name */}
-                              <span className="sm:hidden text-[0.55rem]">
+                              <span className="sm:hidden text-[0.6rem]">
                                 {(booking.teacher_name || booking.username || "–").split(" ")[0]}
                               </span>
                               <span className="hidden sm:inline text-[0.65rem]">
@@ -539,14 +539,14 @@ export function BookingGrid() {
                             )}
                           </div>
                         ) : isPastDate ? (
-                          <div className="rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-0.5 sm:py-1 text-gray-400">
-                            <Clock className="mx-auto h-3 w-3" />
-                            <div className="mt-0.5 text-[0.6rem] sm:text-xs leading-tight">Past</div>
+                          <div className="flex flex-col items-center justify-center gap-0.5 rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-0.5 sm:py-1 text-gray-400">
+                            <Clock className="h-3 w-3" />
+                            <span className="text-[0.6rem] sm:text-xs leading-none">Past</span>
                           </div>
                         ) : isHoliday ? (
-                          <div className="rounded-md border border-amber-200 bg-amber-50 px-1 sm:px-2 py-0.5 sm:py-1 text-amber-600">
-                            <Gift className="mx-auto h-3 w-3" />
-                            <div className="mt-0.5 text-[0.6rem] sm:text-xs font-medium leading-tight">Holiday</div>
+                          <div className="flex flex-col items-center justify-center gap-0.5 rounded-md border border-amber-200 bg-amber-50 px-1 sm:px-2 py-0.5 sm:py-1 text-amber-600">
+                            <Gift className="h-3 w-3" />
+                            <span className="text-[0.6rem] sm:text-xs font-medium leading-none">Holiday</span>
                           </div>
                         ) : (
                           <button
