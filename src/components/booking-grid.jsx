@@ -421,14 +421,14 @@ export function BookingGrid() {
           <table className="w-full border-separate border-spacing-0">
             <thead>
               <tr>
-                {/* Sticky room column header */}
-                <th className="sticky left-0 z-20 border-b border-r bg-muted/40 px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-foreground w-[90px] sm:w-auto">
+                {/* Corner cell: sticky both vertically (below dashboard bar) AND horizontally */}
+                <th className="sticky top-16 left-0 z-30 border-b border-r bg-muted/40 px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-foreground w-[90px] sm:w-auto">
                   Room
                 </th>
                 {timeSlots.map((slot) => (
                   <th
                     key={slot.id}
-                    className="border-b border-l bg-muted/40 px-1 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-foreground min-w-[70px] sm:min-w-0"
+                    className="sticky top-16 z-20 border-b border-l bg-muted/40 px-1 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-foreground min-w-[70px] sm:min-w-0"
                   >
                     <div className="text-[0.65rem] sm:text-sm">{slot.label}</div>
                     <div className="mt-0.5 text-[0.55rem] sm:text-[0.65rem] font-normal text-muted-foreground leading-tight">
