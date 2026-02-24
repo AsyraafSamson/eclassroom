@@ -421,14 +421,15 @@ export function BookingGrid() {
           <table className="w-full border-separate border-spacing-0">
             <thead>
               <tr>
-                {/* Corner cell: sticky both vertically (below dashboard bar) AND horizontally */}
-                <th className="sticky top-16 left-0 z-30 border-b border-r bg-muted/40 px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-foreground w-[90px] sm:w-auto">
+                {/* Corner cell: horizontal sticky only — top-sticky cannot work inside overflow-x-auto.
+                    z-[9] keeps it below the dashboard header (z-10) so it slides behind on scroll. */}
+                <th className="sticky left-0 z-[9] border-b border-r bg-muted/40 px-2 sm:px-3 py-1 sm:py-1.5 text-left text-xs sm:text-sm font-semibold text-foreground w-[75px] sm:w-auto">
                   Room
                 </th>
                 {timeSlots.map((slot) => (
                   <th
                     key={slot.id}
-                    className="sticky top-16 z-20 border-b border-l bg-muted/40 px-1 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-foreground min-w-[70px] sm:min-w-0"
+                    className="border-b border-l bg-muted/40 px-1 sm:px-3 py-1 sm:py-1.5 text-center text-xs sm:text-sm font-semibold text-foreground min-w-[55px] sm:min-w-0"
                   >
                     <div className="text-[0.65rem] sm:text-sm">{slot.label}</div>
                     <div className="mt-0.5 text-[0.55rem] sm:text-[0.65rem] font-normal text-muted-foreground leading-tight">
@@ -445,14 +446,14 @@ export function BookingGrid() {
                   className={rowIndex % 2 ? "bg-muted/20" : "bg-background"}
                 >
                   {/* Sticky room name cell — explicit bg matches row so it doesn't go transparent on scroll */}
-                  <td className={`sticky left-0 z-10 border-b border-r px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-foreground ${rowIndex % 2 ? "bg-muted/20" : "bg-background"}`}>
+                  <td className={`sticky left-0 z-[8] border-b border-r px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-foreground ${rowIndex % 2 ? "bg-muted/20" : "bg-background"}`}>
                     <button
                       type="button"
                       className="inline-flex w-full items-start gap-1 text-left hover:text-primary hover:underline transition"
                       onClick={() => handleShowClassroomDetail(classroom)}
                     >
                       {/* Mobile: wrap to 2 lines within fixed width */}
-                      <span className="sm:hidden line-clamp-2 break-words min-w-0 max-w-[76px] leading-tight">
+                      <span className="sm:hidden line-clamp-2 break-words min-w-0 max-w-[63px] leading-tight">
                         {classroom.name}
                       </span>
                       {/* Desktop: full name no wrap */}
@@ -478,16 +479,16 @@ export function BookingGrid() {
                     return (
                       <td
                         key={slot.id}
-                        className="border-b border-l px-1 sm:px-2 py-1 sm:py-2 text-center text-xs"
+                        className="border-b border-l px-1 sm:px-2 py-0.5 text-center text-xs"
                       >
                         {notBookable ? (
-                          <div className="rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-1.5 sm:py-2 text-gray-400">
+                          <div className="rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-0.5 sm:py-1 text-gray-400">
                             <Ban className="mx-auto h-3 w-3" />
                             <div className="mt-0.5 text-[0.6rem] sm:text-xs leading-tight">N/A</div>
                           </div>
                         ) : isBooked ? (
                           <div
-                            className={`rounded-md border px-1 sm:px-2 py-1.5 sm:py-2 ${
+                            className={`rounded-md border px-1 sm:px-2 py-0.5 sm:py-1 ${
                               passed
                                 ? "border-gray-200 bg-gray-50 text-gray-500"
                                 : isOwner
@@ -538,19 +539,19 @@ export function BookingGrid() {
                             )}
                           </div>
                         ) : isPastDate ? (
-                          <div className="rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-1.5 sm:py-2 text-gray-400">
+                          <div className="rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-0.5 sm:py-1 text-gray-400">
                             <Clock className="mx-auto h-3 w-3" />
                             <div className="mt-0.5 text-[0.6rem] sm:text-xs leading-tight">Past</div>
                           </div>
                         ) : isHoliday ? (
-                          <div className="rounded-md border border-amber-200 bg-amber-50 px-1 sm:px-2 py-1.5 sm:py-2 text-amber-600">
+                          <div className="rounded-md border border-amber-200 bg-amber-50 px-1 sm:px-2 py-0.5 sm:py-1 text-amber-600">
                             <Gift className="mx-auto h-3 w-3" />
                             <div className="mt-0.5 text-[0.6rem] sm:text-xs font-medium leading-tight">Holiday</div>
                           </div>
                         ) : (
                           <button
                             type="button"
-                            className="w-full rounded-md border border-emerald-200 bg-emerald-50 px-1 sm:px-2 py-1.5 sm:py-2.5 text-[0.6rem] sm:text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 active:bg-emerald-100 touch-manipulation"
+                            className="w-full rounded-md border border-emerald-200 bg-emerald-50 px-1 sm:px-2 py-0.5 sm:py-1 text-[0.6rem] sm:text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 active:bg-emerald-100 touch-manipulation"
                             onClick={() => handleOpenBooking(classroom, slot)}
                           >
                             Available
