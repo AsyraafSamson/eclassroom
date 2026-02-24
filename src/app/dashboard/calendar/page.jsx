@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,7 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekDaysFull = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekDaysShort = ["S", "M", "T", "W", "T", "F", "S"];
 
 function buildCalendar(date) {
   const year = date.getFullYear();
@@ -50,12 +50,19 @@ function dateToString(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Returns first name only (for compact mobile display)
+function firstName(fullName) {
+  return fullName?.split(" ")[0] || "User";
+}
+
 export default function CalendarPage() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [group, setGroup] = useState("all");
   const [roomGroups, setRoomGroups] = useState([]);
-  const [bookingCounts, setBookingCounts] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
+  // Store full booking arrays per date instead of just counts
+  const [bookingsByDate, setBookingsByDate] = useState({});
 
   const monthLabel = useMemo(
     () =>
@@ -71,6 +78,14 @@ export default function CalendarPage() {
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
 
+  // Fetch current logged-in user once on mount
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => setCurrentUser(data.user || null))
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetch("/api/room-groups")
       .then((r) => r.json())
@@ -78,13 +93,12 @@ export default function CalendarPage() {
       .catch(() => {});
   }, []);
 
-  // Fetch booking counts for each visible day in the current month
   useEffect(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    const counts = {};
+    const byDate = {};
     const fetches = [];
 
     for (let d = 1; d <= daysInMonth; d++) {
@@ -94,121 +108,227 @@ export default function CalendarPage() {
         fetch(`/api/bookings?date=${dateStr}${groupParam}`)
           .then((r) => r.json())
           .then((data) => {
-            counts[dateStr] = (data.bookings || []).length;
+            byDate[dateStr] = data.bookings || [];
           })
           .catch(() => {
-            counts[dateStr] = 0;
+            byDate[dateStr] = [];
           })
       );
     }
 
-    Promise.all(fetches).then(() => setBookingCounts({ ...counts }));
+    Promise.all(fetches).then(() => setBookingsByDate({ ...byDate }));
   }, [currentDate, group]);
 
+  const isAdmin = currentUser?.role === "admin";
+
   return (
-    <div className="space-y-6">
-      <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-2 border-b pb-3">
-          <CalendarDays className="h-5 w-5 text-foreground" />
-          <h2 className="text-lg font-semibold text-foreground">
+    <div className="space-y-4 md:space-y-6">
+      {/* Card with overflow-hidden so grid respects rounded corners */}
+      <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
+
+        {/* Card header */}
+        <div className="flex items-center gap-2 border-b px-4 py-3 md:px-6">
+          <CalendarDays className="h-5 w-5 text-foreground shrink-0" />
+          <h2 className="text-base font-semibold text-foreground md:text-lg">
             Booking Calendar
           </h2>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-          <span className="text-muted-foreground">Filter by Group:</span>
-          <Select value={group} onValueChange={setGroup}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Groups</SelectItem>
-              {roomGroups.map((g) => (
-                <SelectItem key={g.id} value={String(g.id)}>
-                  {g.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Controls */}
+        <div className="px-4 py-3 space-y-3 md:px-6 md:py-4">
+          {/* Group filter — full width on mobile */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <span className="text-sm text-muted-foreground shrink-0">
+              Filter by Group:
+            </span>
+            <Select value={group} onValueChange={setGroup}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Groups</SelectItem>
+                {roomGroups.map((g) => (
+                  <SelectItem key={g.id} value={String(g.id)}>
+                    {g.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Month navigation — icon-only on mobile, with text on sm+ */}
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="touch-manipulation"
+              onClick={() =>
+                setCurrentDate(
+                  (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+                )
+              }
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden sm:inline ml-1">Previous</span>
+            </Button>
+
+            <h3 className="text-sm font-semibold text-foreground sm:text-base">
+              {monthLabel}
+            </h3>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="touch-manipulation"
+              onClick={() =>
+                setCurrentDate(
+                  (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+                )
+              }
+            >
+              <span className="hidden sm:inline mr-1">Next</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setCurrentDate(
-                (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
-              )
-            }
-          >
-            <ChevronLeft className="mr-1 h-4 w-4" />
-            Previous Month
-          </Button>
-          <h3 className="text-base font-semibold text-foreground">
-            {monthLabel}
-          </h3>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setCurrentDate(
-                (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
-              )
-            }
-          >
-            Next Month
-            <ChevronRight className="ml-1 h-4 w-4" />
-          </Button>
-        </div>
+        {/* Calendar grid — edge-to-edge, no horizontal scroll */}
+        <div className="border-t">
+          {/* Day headers — same gap-px bg-border treatment as the cells */}
+          <div className="grid grid-cols-7 gap-px bg-border text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {weekDaysFull.map((day, i) => (
+              <div key={day} className="py-2 bg-muted/40">
+                <span className="hidden sm:inline">{day}</span>
+                <span className="sm:hidden">{weekDaysShort[i]}</span>
+              </div>
+            ))}
+          </div>
 
-        <div className="mt-4 overflow-x-auto">
-          <div className="min-w-[800px]">
-            <div className="grid grid-cols-7 rounded-md bg-muted/40 text-center text-xs font-semibold uppercase text-muted-foreground">
-              {weekDays.map((day) => (
-                <div key={day} className="py-2">
-                  {day}
-                </div>
-              ))}
-            </div>
+          {/* Cells — gap-px with bg-border creates clean 1px dividers */}
+          <div className="grid grid-cols-7 gap-px bg-border">
+            {cells.map((cell, index) => {
+              const key = `${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}`;
+              const isToday = key === todayKey && cell.isCurrentMonth;
+              const dateStr = cell.isCurrentMonth
+                ? dateToString(cell.date)
+                : null;
 
-            <div className="mt-1 grid grid-cols-7 gap-1">
-              {cells.map((cell, index) => {
-                const key = `${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}`;
-                const isToday = key === todayKey && cell.isCurrentMonth;
-                const dateStr = cell.isCurrentMonth ? dateToString(cell.date) : null;
-                const count = dateStr ? bookingCounts[dateStr] || 0 : 0;
+              // All bookings for this day from the API
+              const allBookings = dateStr ? bookingsByDate[dateStr] ?? [] : [];
 
-                const handleClick = () => {
-                  if (cell.isCurrentMonth) {
-                    router.push(`/dashboard/classrooms?date=${dateStr}`);
-                  }
-                };
+              // Admin: one entry per unique user who booked that day
+              // User: only their own bookings
+              const relevantBookings = (() => {
+                if (!cell.isCurrentMonth || !currentUser) return [];
+                if (isAdmin) {
+                  const seen = new Set();
+                  return allBookings.filter((b) => {
+                    if (seen.has(b.user_id)) return false;
+                    seen.add(b.user_id);
+                    return true;
+                  });
+                }
+                return allBookings.filter(
+                  (b) => b.user_id === currentUser.id
+                );
+              })();
 
-                return (
-                  <div
-                    key={`${key}-${index}`}
-                    onClick={handleClick}
-                    className={`min-h-[90px] rounded-sm border p-2 text-xs ${
-                      cell.isCurrentMonth
-                        ? "bg-background cursor-pointer hover:bg-accent/50 transition-colors"
-                        : "bg-muted/20 text-muted-foreground"
-                    } ${isToday ? "bg-foreground/5" : ""}`}
-                  >
-                    <div className="text-right text-[0.7rem] font-semibold">
-                      <span className={isToday ? "text-foreground" : ""}>
+              // Max 2 items visible in cell, rest shown as "+N more"
+              const maxVisible = 2;
+              const visibleItems = relevantBookings.slice(0, maxVisible);
+              const extraCount = Math.max(
+                0,
+                relevantBookings.length - maxVisible
+              );
+
+              const handleClick = () => {
+                if (cell.isCurrentMonth) {
+                  router.push(`/dashboard/classrooms?date=${dateStr}`);
+                }
+              };
+
+              return (
+                <div
+                  key={`${key}-${index}`}
+                  onClick={handleClick}
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                  className={[
+                    "flex flex-col",
+                    "min-h-[52px] sm:min-h-[72px] md:min-h-[90px]",
+                    "p-1 sm:p-1.5 md:p-2",
+                    "touch-manipulation",
+                    cell.isCurrentMonth
+                      ? "bg-background cursor-pointer hover:bg-accent/50 active:bg-accent/70 transition-colors"
+                      : "bg-muted/20",
+                    isToday ? "bg-primary/5" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  {/* Day number — iOS-style filled circle for today */}
+                  <div className="flex justify-end">
+                    {isToday ? (
+                      <span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-[0.6rem] sm:text-[0.65rem] font-bold leading-none">
                         {cell.day}
                       </span>
-                    </div>
-                    {cell.isCurrentMonth && count > 0 && (
-                      <div className="mt-1 rounded bg-primary/10 px-1.5 py-0.5 text-center text-[0.65rem] font-medium text-primary">
-                        {count} booking{count !== 1 ? "s" : ""}
-                      </div>
+                    ) : (
+                      <span
+                        className={[
+                          "text-[0.65rem] sm:text-[0.7rem] font-medium leading-none",
+                          cell.isCurrentMonth
+                            ? "text-foreground"
+                            : "text-muted-foreground/40",
+                        ].join(" ")}
+                      >
+                        {cell.day}
+                      </span>
                     )}
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Booking info */}
+                  {relevantBookings.length > 0 && (
+                    <div className="mt-auto pt-0.5 space-y-px">
+                      {isAdmin ? (
+                        // Admin: show each unique user's name
+                        <>
+                          {visibleItems.map((b) => (
+                            <div
+                              key={b.user_id}
+                              className="rounded-sm bg-primary/10 px-1 py-0.5 leading-tight overflow-hidden"
+                            >
+                              {/* Mobile: first name only */}
+                              <span className="sm:hidden block truncate text-center text-[0.55rem] font-semibold text-primary">
+                                {firstName(b.user_name || b.username)}
+                              </span>
+                              {/* sm+: full name */}
+                              <span className="hidden sm:block truncate text-center text-[0.6rem] font-medium text-primary">
+                                {b.user_name || b.username || "User"}
+                              </span>
+                            </div>
+                          ))}
+                          {extraCount > 0 && (
+                            <div className="text-center text-[0.5rem] sm:text-[0.55rem] text-muted-foreground leading-tight">
+                              +{extraCount} more
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        // Regular user: show their own booking count only
+                        <div className="rounded-sm bg-primary/10 px-1 py-0.5 text-center leading-tight">
+                          <span className="sm:hidden text-[0.6rem] font-semibold text-primary">
+                            {relevantBookings.length}
+                          </span>
+                          <span className="hidden sm:inline text-[0.6rem] font-medium text-primary">
+                            {relevantBookings.length} booking
+                            {relevantBookings.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

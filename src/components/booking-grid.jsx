@@ -418,156 +418,151 @@ export function BookingGrid() {
       {/* Booking Grid Table */}
       <div className="rounded-xl border bg-card shadow-sm">
         <div className="overflow-x-auto">
-          <div className="min-w-[900px]">
-            <table className="w-full border-separate border-spacing-0">
-              <thead>
-                <tr>
-                  <th className="border-b border-r bg-muted/40 px-3 py-3 text-left text-sm font-semibold text-foreground">
-                    Room
-                  </th>
-                  {timeSlots.map((slot) => (
-                    <th
-                      key={slot.id}
-                      className="border-b border-l bg-muted/40 px-3 py-3 text-center text-sm font-semibold text-foreground"
-                    >
-                      <div>{slot.label}</div>
-                      <div className="mt-0.5 text-[0.65rem] font-normal text-muted-foreground">
-                        {slot.start_time} - {slot.end_time}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {classrooms.map((classroom, rowIndex) => (
-                  <tr
-                    key={classroom.id}
-                    className={rowIndex % 2 ? "bg-muted/20" : "bg-background"}
+          <table className="w-full border-separate border-spacing-0">
+            <thead>
+              <tr>
+                {/* Sticky room column header */}
+                <th className="sticky left-0 z-20 border-b border-r bg-muted/40 px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-foreground w-[90px] sm:w-auto">
+                  Room
+                </th>
+                {timeSlots.map((slot) => (
+                  <th
+                    key={slot.id}
+                    className="border-b border-l bg-muted/40 px-1 sm:px-3 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-foreground min-w-[70px] sm:min-w-0"
                   >
-                    <td className="border-b border-r px-3 py-3 text-sm font-semibold text-foreground whitespace-nowrap">
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 text-left hover:text-primary hover:underline transition"
-                        onClick={() => handleShowClassroomDetail(classroom)}
-                      >
+                    <div className="text-[0.65rem] sm:text-sm">{slot.label}</div>
+                    <div className="mt-0.5 text-[0.55rem] sm:text-[0.65rem] font-normal text-muted-foreground leading-tight">
+                      {slot.start_time}–{slot.end_time}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {classrooms.map((classroom, rowIndex) => (
+                <tr
+                  key={classroom.id}
+                  className={rowIndex % 2 ? "bg-muted/20" : "bg-background"}
+                >
+                  {/* Sticky room name cell — explicit bg matches row so it doesn't go transparent on scroll */}
+                  <td className={`sticky left-0 z-10 border-b border-r px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-foreground ${rowIndex % 2 ? "bg-muted/20" : "bg-background"}`}>
+                    <button
+                      type="button"
+                      className="inline-flex w-full items-start gap-1 text-left hover:text-primary hover:underline transition"
+                      onClick={() => handleShowClassroomDetail(classroom)}
+                    >
+                      {/* Mobile: wrap to 2 lines within fixed width */}
+                      <span className="sm:hidden line-clamp-2 break-words min-w-0 max-w-[76px] leading-tight">
                         {classroom.name}
-                        {!classroom.can_be_booked && (
-                          <Ban className="h-3 w-3 text-destructive" />
-                        )}
-                      </button>
-                    </td>
-                    {timeSlots.map((slot) => {
-                      const booking = bookingMap.get(
-                        `${classroom.id}-${slot.id}`
-                      );
-                      const isBooked = Boolean(booking);
-                      const isOwner =
-                        currentUser && isBooked && currentUser.id === booking.user_id;
-                      const passed =
-                        isBooked && isSlotPassed(selectedDate, slot.end_time);
-                      const isPastDate = selectedDate < getTodayString();
-                      const canModify =
-                        isBooked && !passed && (isAdmin || isOwner);
-                      const notBookable = !classroom.can_be_booked;
-                      const isHoliday = Boolean(holidayForSelectedDate);
+                      </span>
+                      {/* Desktop: full name no wrap */}
+                      <span className="hidden sm:inline whitespace-nowrap">
+                        {classroom.name}
+                      </span>
+                      {!classroom.can_be_booked && (
+                        <Ban className="h-3 w-3 text-destructive shrink-0 mt-0.5" />
+                      )}
+                    </button>
+                  </td>
 
-                      return (
-                        <td
-                          key={slot.id}
-                          className="border-b border-l px-2 py-2 text-center text-xs"
-                        >
-                          {notBookable ? (
-                            <div className="rounded-md border border-gray-200 bg-gray-50 px-2 py-2 text-gray-400">
-                              <Ban className="mx-auto h-3 w-3" />
-                              <div className="mt-0.5 text-xs">Not Available</div>
+                  {timeSlots.map((slot) => {
+                    const booking = bookingMap.get(`${classroom.id}-${slot.id}`);
+                    const isBooked = Boolean(booking);
+                    const isOwner = currentUser && isBooked && currentUser.id === booking.user_id;
+                    const passed = isBooked && isSlotPassed(selectedDate, slot.end_time);
+                    const isPastDate = selectedDate < getTodayString();
+                    const canModify = isBooked && !passed && (isAdmin || isOwner);
+                    const notBookable = !classroom.can_be_booked;
+                    const isHoliday = Boolean(holidayForSelectedDate);
+
+                    return (
+                      <td
+                        key={slot.id}
+                        className="border-b border-l px-1 sm:px-2 py-1 sm:py-2 text-center text-xs"
+                      >
+                        {notBookable ? (
+                          <div className="rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-1.5 sm:py-2 text-gray-400">
+                            <Ban className="mx-auto h-3 w-3" />
+                            <div className="mt-0.5 text-[0.6rem] sm:text-xs leading-tight">N/A</div>
+                          </div>
+                        ) : isBooked ? (
+                          <div
+                            className={`rounded-md border px-1 sm:px-2 py-1.5 sm:py-2 ${
+                              passed
+                                ? "border-gray-200 bg-gray-50 text-gray-500"
+                                : isOwner
+                                  ? "border-blue-200 bg-blue-50 text-blue-700"
+                                  : "border-rose-200 bg-rose-50 text-rose-700"
+                            }`}
+                          >
+                            <div className="text-[0.6rem] sm:text-xs font-semibold leading-tight">
+                              {passed ? "Passed" : isOwner ? "Your Booking" : "Booked"}
                             </div>
-                          ) : isBooked ? (
                             <div
-                              className={`rounded-md border px-2 py-2 ${
-                                passed
-                                  ? "border-gray-200 bg-gray-50 text-gray-500"
-                                  : isOwner
-                                    ? "border-blue-200 bg-blue-50 text-blue-700"
-                                    : "border-rose-200 bg-rose-50 text-rose-700"
+                              className={`mt-0.5 leading-tight ${
+                                passed ? "text-gray-400" : isOwner ? "text-blue-600" : "text-rose-600"
                               }`}
                             >
-                              <div className="text-xs font-semibold">
-                                {passed
-                                  ? "Passed"
-                                  : isOwner
-                                    ? "Your Booking"
-                                    : "Booked"}
+                              {/* Mobile: first name only; desktop: full name */}
+                              <span className="sm:hidden text-[0.55rem]">
+                                {(booking.teacher_name || booking.username || "–").split(" ")[0]}
+                              </span>
+                              <span className="hidden sm:inline text-[0.65rem]">
+                                {booking.teacher_name || booking.username || "Reserved"}
+                              </span>
+                            </div>
+                            {canModify && (
+                              <div className="mt-1 flex items-center justify-center gap-0.5 sm:gap-1">
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-0.5 rounded px-1 sm:px-1.5 py-0.5 sm:py-1 text-xs text-blue-600 transition hover:bg-blue-100 touch-manipulation"
+                                  onClick={() =>
+                                    handleEditBooking({
+                                      ...booking,
+                                      classroom_name: classroom.name,
+                                    })
+                                  }
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                  <span className="hidden sm:inline">Edit</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-0.5 rounded px-1 sm:px-1.5 py-0.5 sm:py-1 text-xs text-rose-600 transition hover:bg-rose-200 touch-manipulation"
+                                  onClick={() => handleDeleteBooking(booking.id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  <span className="hidden sm:inline">Del</span>
+                                </button>
                               </div>
-                              <div
-                                className={`text-[0.65rem] leading-tight ${
-                                  passed
-                                    ? "text-gray-400"
-                                    : isOwner
-                                      ? "text-blue-600"
-                                      : "text-rose-600"
-                                }`}
-                              >
-                                {booking.teacher_name ||
-                                  booking.username ||
-                                  "Reserved"}
-                              </div>
-                              {canModify && (
-                                <div className="mt-1 flex items-center justify-center gap-1">
-                                  <button
-                                    type="button"
-                                    className="inline-flex items-center gap-0.5 rounded px-1.5 py-1 text-xs text-blue-600 transition hover:bg-blue-100"
-                                    onClick={() =>
-                                      handleEditBooking({
-                                        ...booking,
-                                        classroom_name: classroom.name,
-                                      })
-                                    }
-                                  >
-                                    <Pencil className="h-3 w-3" />
-                                    Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="inline-flex items-center gap-0.5 rounded px-1.5 py-1 text-xs text-rose-600 transition hover:bg-rose-200"
-                                    onClick={() =>
-                                      handleDeleteBooking(booking.id)
-                                    }
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                    Del
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ) : isPastDate ? (
-                            <div className="rounded-md border border-gray-200 bg-gray-50 px-2 py-2 text-gray-400">
-                              <Clock className="mx-auto h-3 w-3" />
-                              <div className="mt-0.5 text-xs">Past Date</div>
-                            </div>
-                          ) : isHoliday ? (
-                            <div className="rounded-md border border-amber-200 bg-amber-50 px-2 py-2 text-amber-600">
-                              <Gift className="mx-auto h-3 w-3" />
-                              <div className="mt-0.5 text-xs font-medium">Holiday</div>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className="w-full rounded-md border border-emerald-200 bg-emerald-50 px-2 py-2.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
-                              onClick={() =>
-                                handleOpenBooking(classroom, slot)
-                              }
-                            >
-                              Available
-                            </button>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                            )}
+                          </div>
+                        ) : isPastDate ? (
+                          <div className="rounded-md border border-gray-200 bg-gray-50 px-1 sm:px-2 py-1.5 sm:py-2 text-gray-400">
+                            <Clock className="mx-auto h-3 w-3" />
+                            <div className="mt-0.5 text-[0.6rem] sm:text-xs leading-tight">Past</div>
+                          </div>
+                        ) : isHoliday ? (
+                          <div className="rounded-md border border-amber-200 bg-amber-50 px-1 sm:px-2 py-1.5 sm:py-2 text-amber-600">
+                            <Gift className="mx-auto h-3 w-3" />
+                            <div className="mt-0.5 text-[0.6rem] sm:text-xs font-medium leading-tight">Holiday</div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="w-full rounded-md border border-emerald-200 bg-emerald-50 px-1 sm:px-2 py-1.5 sm:py-2.5 text-[0.6rem] sm:text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 active:bg-emerald-100 touch-manipulation"
+                            onClick={() => handleOpenBooking(classroom, slot)}
+                          >
+                            Available
+                          </button>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
