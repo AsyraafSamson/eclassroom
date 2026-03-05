@@ -4,11 +4,11 @@ import { getDB } from "@/lib/db";
 
 export async function POST(request) {
   try {
-    const { token, newPassword } = await request.json();
+    const { token, email, newPassword } = await request.json();
 
-    if (!token || !newPassword) {
+    if (!token || !email || !newPassword) {
       return NextResponse.json(
-        { error: "Token and new password are required" },
+        { error: "Token, email and new password are required" },
         { status: 400 }
       );
     }
@@ -22,11 +22,10 @@ export async function POST(request) {
 
     const db = await getDB();
 
+    // Find user by email
     const user = await db
-      .prepare(
-        "SELECT id, reset_token, token_expiry FROM users WHERE reset_token = ?"
-      )
-      .bind(token)
+      .prepare("SELECT id FROM users WHERE email = ?")
+      .bind(email)
       .first();
 
     if (!user) {
@@ -36,11 +35,38 @@ export async function POST(request) {
       );
     }
 
-    // Check if token is expired
-    const now = new Date().toISOString();
-    if (user.token_expiry < now) {
+    // Find the latest unused token for this user
+    const resetRecord = await db
+      .prepare(
+        "SELECT id, token, expires_at FROM password_reset_tokens WHERE user_id = ? AND used_at IS NULL ORDER BY created_at DESC LIMIT 1"
+      )
+      .bind(user.id)
+      .first();
+
+    if (!resetRecord) {
       return NextResponse.json(
-        { error: "Reset token has expired" },
+        { error: "Invalid or expired reset token" },
+        { status: 400 }
+      );
+    }
+
+    // Check expiry
+    if (new Date(resetRecord.expires_at) < new Date()) {
+      await db
+        .prepare("DELETE FROM password_reset_tokens WHERE id = ?")
+        .bind(resetRecord.id)
+        .run();
+      return NextResponse.json(
+        { error: "Reset token has expired. Please request a new one." },
+        { status: 400 }
+      );
+    }
+
+    // Verify hashed token
+    const isValid = await bcrypt.compare(token, resetRecord.token);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: "Invalid or expired reset token" },
         { status: 400 }
       );
     }
@@ -48,12 +74,20 @@ export async function POST(request) {
     // Hash new password
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
-    // Update password and clear reset token
+    // Update password
     await db
       .prepare(
-        "UPDATE users SET password_hash = ?, reset_token = NULL, token_expiry = NULL, updated_at = datetime('now') WHERE id = ?"
+        "UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
       )
       .bind(passwordHash, user.id)
+      .run();
+
+    // Mark token as used (audit trail)
+    await db
+      .prepare(
+        "UPDATE password_reset_tokens SET used_at = datetime('now') WHERE id = ?"
+      )
+      .bind(resetRecord.id)
       .run();
 
     return NextResponse.json({

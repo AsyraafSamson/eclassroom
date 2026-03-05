@@ -15,7 +15,7 @@ export async function PATCH(request) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const db = getDB();
+    const db = await getDB();
     const { fullName } = await request.json();
 
     if (!fullName || fullName.trim().length === 0) {
@@ -27,7 +27,7 @@ export async function PATCH(request) {
 
     // Update user's name
     const result = await db
-      .prepare("UPDATE users SET name = ? WHERE id = ?")
+      .prepare("UPDATE users SET full_name = ? WHERE id = ?")
       .bind(fullName.trim(), payload.userId)
       .run();
 
@@ -37,7 +37,7 @@ export async function PATCH(request) {
 
     // Fetch updated user
     const user = await db
-      .prepare("SELECT id, email, name, role FROM users WHERE id = ?")
+      .prepare("SELECT id, email, full_name, role FROM users WHERE id = ?")
       .bind(payload.userId)
       .first();
 

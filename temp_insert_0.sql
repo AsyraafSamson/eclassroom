@@ -1,0 +1,1 @@
+﻿INSERT INTO bookings (id, user_id, classroom_id, time_slot_id, session_id, booking_date, teacher_name, purpose, status, created_at, updated_at) VALUES (3, 9, 2, 1, 'null', '2026-02-16', 'Asyraaf', 'null', 'approved', '2026-02-16 03:15:32', '2026-02-16 03:15:32'), (4, 9, 3, 1, 'null', '2026-02-16', 'Asyraaf', 'Testing', 'approved', '2026-02-16 03:23:26', '2026-02-16 03:23:26')
