@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDB } from "@/lib/db";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { Resend } from "resend";
@@ -49,12 +50,13 @@ export async function POST(request) {
       .run();
 
     // Send reset email via Resend
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const baseUrl = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL;
+    const { env } = await getCloudflareContext({ async: true });
+    const resend = new Resend(env.RESEND_API_KEY);
+    const baseUrl = request.headers.get("origin") || env.NEXT_PUBLIC_APP_URL;
     const resetLink = `${baseUrl}/reset-password?token=${plainToken}&email=${encodeURIComponent(user.email)}`;
 
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL,
+      from: env.RESEND_FROM_EMAIL,
       to: user.email,
       subject: "Reset Your Password - eClassroom",
       html: `
